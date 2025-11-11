@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Central de Regulação{% endblock %}</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        fontFamily: {
+          sans: ["Inter", "sans-serif"],
+        },
+        extend: {
+          colors: {
+            primario: {
+              50: "#EDF9F8",
+              100: "#D4F2EF",
+              200: "#A9E4DF",
+              300: "#7FD6CF",
+              400: "#54C8BF",
+              500: "#2ABAAD",
+              600: "#219588",
+              700: "#187063",
+              800: "#0F4B3F",
+              900: "#07251A",
+            },
+            "cinza-fundo": "#f5f7fb",
+          },
+          boxShadow: {
+            suave: "0 10px 30px -15px rgba(15, 23, 42, 0.2)",
+          },
+          backdropBlur: {
+            xs: "2px",
+          },
+        },
+      },
+    };
+  </script>
+
+  <style type="text/tailwindcss">
+    :root {
+      color-scheme: light;
+    }
+
+    body {
+      @apply bg-slate-100 text-slate-800 antialiased;
+    }
+
+    .btn {
+      @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-60;
+    }
+
+    .btn-primary {
+      @apply btn bg-primario-600 text-white shadow-sm hover:bg-primario-700 focus-visible:outline-primario-600;
+    }
+
+    .btn-outline {
+      @apply btn border border-primario-200 text-primario-700 hover:border-primario-300 hover:bg-primario-50 focus-visible:outline-primario-600;
+    }
+
+    .btn-danger {
+      @apply btn bg-rose-600 text-white shadow-sm hover:bg-rose-700 focus-visible:outline-rose-600;
+    }
+
+    .badge {
+      @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium uppercase tracking-wide;
+    }
+
+    .nav-link {
+      @apply inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900;
+    }
+
+    .nav-link-active {
+      @apply bg-primario-50 text-primario-700 hover:bg-primario-50 hover:text-primario-700;
+    }
+
+    .app-card {
+      @apply rounded-2xl border border-slate-200/70 bg-white p-6 shadow-sm transition hover:shadow-md;
+    }
+
+    .app-section {
+      @apply rounded-2xl border border-slate-200/60 bg-white/80 p-6 shadow-sm backdrop-blur-xs;
+    }
+
+    .flash {
+      @apply relative overflow-hidden rounded-2xl border px-4 py-4 text-sm shadow-sm;
+    }
+
+    .flash::before {
+      content: "";
+      @apply absolute inset-y-0 left-0 w-1;
+    }
+
+    .flash-success {
+      @apply border-emerald-200 bg-emerald-50 text-emerald-800;
+    }
+
+    .flash-success::before {
+      @apply bg-emerald-500;
+    }
+
+    .flash-danger {
+      @apply border-rose-200 bg-rose-50 text-rose-800;
+    }
+
+    .flash-danger::before {
+      @apply bg-rose-500;
+    }
+
+    .flash-warning {
+      @apply border-amber-200 bg-amber-50 text-amber-800;
+    }
+
+    .flash-warning::before {
+      @apply bg-amber-500;
+    }
+
+    .flash-info {
+      @apply border-sky-200 bg-sky-50 text-sky-800;
+    }
+
+    .flash-info::before {
+      @apply bg-sky-500;
+    }
+
+    .layout-grid {
+      @apply grid gap-6 lg:grid-cols-[1fr_320px];
+    }
+
+    @media (max-width: 1023px) {
+      .layout-grid {
+        @apply grid-cols-1;
+      }
+    }
+  </style>
+
+  {% block head_extra %}{% endblock %}
+</head>
+<body class="min-h-screen">
+  <div class="min-h-screen bg-gradient-to-br from-slate-100 via-slate-100 to-primario-50/60">
+    <header class="sticky top-0 z-40 border-b border-white/60 bg-white/75 backdrop-blur">
+      <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+        <div class="flex items-center justify-between lg:gap-10">
+          <a href="{{ url_for('dashboards.home') }}" class="group flex items-center gap-3">
+            <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primario-100 text-primario-700 shadow-inner shadow-primario-200 transition group-hover:-translate-y-0.5 group-hover:shadow">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.5V6a3 3 0 013-3h4.5M21 10.5V18a3 3 0 01-3 3h-4.5M21 10.5h-6a3 3 0 01-3-3V3M3 13.5h6a3 3 0 013 3V21" />
+              </svg>
+            </span>
+            <div>
+              <h1 class="text-xl font-semibold text-slate-900 lg:text-2xl">
+                Central de Regulação
+              </h1>
+              <p class="text-xs font-medium uppercase tracking-[0.25em] text-primario-600">
+                Secretaria de Saúde
+              </p>
+            </div>
+          </a>
+
+          <button
+            type="button"
+            class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primario-500 lg:hidden"
+            data-menu-toggle
+            aria-expanded="false"
+            aria-controls="main-navigation"
+          >
+            Menu
+            <svg xmlns="http://www.w3.org/2000/svg" class="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+
+        {% if current_user.is_authenticated %}
+          {% set role = current_user.role or '' %}
+          {% set view_args = request.view_args or {} %}
+
+          <div
+            id="main-navigation"
+            data-menu
+            class="hidden flex-col gap-4 rounded-2xl border border-white/80 bg-white/80 p-4 shadow-lg shadow-primario-100/40 backdrop-blur-sm lg:flex lg:flex-row lg:items-center lg:gap-2 lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:backdrop-blur-0"
+          >
+            <nav class="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-1">
+              {% if role in ['recepcao', 'admin'] %}
+                <a href="{{ url_for('reception.listar_pedidos') }}"
+                   class="nav-link{% if request.blueprint == 'reception' %} nav-link-active{% endif %}">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18M5 11h14M7 15h10M9 19h6" />
+                  </svg>
+                  Recepção
+                </a>
+              {% endif %}
+
+              {% if role in ['malote', 'admin'] %}
+                <a href="{{ url_for('malote.listar') }}"
+                   class="nav-link{% if request.blueprint == 'malote' %} nav-link-active{% endif %}">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 15l6 6m0 0l6-6m-6 6V3" />
+                  </svg>
+                  Malote
+                </a>
+              {% endif %}
+
+              {% if role in ['medico_regulador', 'malote', 'admin'] %}
+                <a href="{{ url_for('regulator.painel', tipo='municipal') }}"
+                   class="nav-link{% if request.blueprint == 'regulator' %} nav-link-active{% endif %}">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 5h18M8 5v14M16 5v14M3 19h18" />
+                  </svg>
+                  Painel do Regulador
+                </a>
+              {% endif %}
+
+              {% if role in ['agendador_municipal', 'admin'] %}
+                <a href="{{ url_for('scheduling.lista', tipo='municipal') }}"
+                   class="nav-link{% if request.endpoint == 'scheduling.lista' and view_args.get('tipo') == 'municipal' %} nav-link-active{% endif %}">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M4 11h16M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Agenda Municipal
+                </a>
+              {% endif %}
+
+              {% if role in ['agendador_estadual', 'admin'] %}
+                <a href="{{ url_for('scheduling.lista', tipo='estadual') }}"
+                   class="nav-link{% if request.endpoint == 'scheduling.lista' and view_args.get('tipo') == 'estadual' %} nav-link-active{% endif %}">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 7H7a2 2 0 00-2 2v8m0 0h14m-14 0l3-3m11 3V9a2 2 0 00-2-2h-2m0 0L9 7m6 0v6" />
+                  </svg>
+                  Agenda Estadual
+                </a>
+              {% endif %}
+
+              {% if role == 'admin' %}
+                <div class="relative" data-dropdown>
+                  <button type="button"
+                          class="nav-link w-full justify-between lg:w-auto lg:justify-start"
+                          data-dropdown-toggle
+                          aria-expanded="false">
+                    <span class="flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.607 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      Administração
+                    </span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
+                    </svg>
+                  </button>
+                  <div class="absolute right-0 z-30 mt-2 w-64 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-lg shadow-slate-200/40 ring-1 ring-black/5 hidden data-[state=open]:block"
+                       data-dropdown-menu
+                       data-state="closed">
+                    <div class="p-2">
+                      <a href="{{ url_for('admin.listar_usuarios') }}"
+                         class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-slate-600 transition hover:bg-slate-50 {% if request.endpoint in ['admin.listar_usuarios', 'admin.criar_usuario', 'admin.editar_usuario'] %}font-semibold text-primario-700{% endif %}">
+                        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-primario-100 text-primario-600">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A3 3 0 017 17h10a3 3 0 011.879.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                        </span>
+                        Usuários
+                      </a>
+                      <a href="{{ url_for('admin.listar_unidades') }}"
+                         class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-slate-600 transition hover:bg-slate-50 {% if request.endpoint in ['admin.listar_unidades', 'admin.criar_unidade', 'admin.editar_unidade'] %}font-semibold text-primario-700{% endif %}">
+                        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-primario-100 text-primario-600">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 7a2 2 0 012-2h12a2 2 0 012 2M4 7v9a2 2 0 002 2h12a2 2 0 002-2V7M9 16h6" />
+                          </svg>
+                        </span>
+                        Unidades de Saúde
+                      </a>
+                      <a href="{{ url_for('admin.listar_exames') }}"
+                         class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-slate-600 transition hover:bg-slate-50 {% if request.endpoint in ['admin.listar_exames', 'admin.novo_exame', 'admin.editar_exame'] %}font-semibold text-primario-700{% endif %}">
+                        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-primario-100 text-primario-600">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 20h16M4 4h16M4 12h16" />
+                          </svg>
+                        </span>
+                        Exames
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+            </nav>
+
+            <div class="hidden h-10 w-px bg-slate-200 lg:block"></div>
+
+            <div class="flex flex-col gap-3 rounded-2xl border border-primario-100 bg-primario-50/60 p-4 text-sm text-slate-600 lg:flex-row lg:items-center lg:gap-4 lg:border-0 lg:bg-transparent lg:p-0">
+              <div class="flex items-center gap-3">
+                <span class="flex h-10 w-10 items-center justify-center rounded-full bg-primario-600 font-semibold text-white">
+                  {{ (current_user.nome or 'US')[0:2]|upper }}
+                </span>
+                <div class="flex flex-col text-left">
+                  <span class="font-semibold text-slate-900">{{ current_user.nome }}</span>
+                  <span class="text-xs uppercase tracking-[0.15em] text-primario-600">
+                    {{ current_user.role.replace('_', ' ').title() if current_user.role else 'Usuário' }}
+                  </span>
+                  {% if usuario_logado_unidade %}
+                    <span class="mt-1 inline-flex items-center gap-1 text-xs text-slate-500">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 11c0 1.105-.895 2-2 2s-2-.895-2-2 .895-2 2-2 2 .895 2 2zm0 0C12 7.134 8 4 8 4s-4 3.134-4 7.5S8 20 8 20s4-3.134 4-7.5z" />
+                      </svg>
+                      Unidade: {{ usuario_logado_unidade }}
+                    </span>
+                  {% endif %}
+                </div>
+              </div>
+              <a href="{{ url_for('auth.logout') }}" class="btn-outline text-sm">
+                Sair
+              </a>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </header>
+
+    <main class="mx-auto w-full max-w-7xl px-4 py-8 lg:py-10">
+      {% with messages = get_flashed_messages(with_categories=True) %}
+        {% if messages %}
+          <div class="mb-8 space-y-3">
+            {% for category, message in messages %}
+              {% if category == 'danger' %}
+                {% set classes = 'flash flash-danger' %}
+              {% elif category == 'warning' %}
+                {% set classes = 'flash flash-warning' %}
+              {% elif category == 'success' %}
+                {% set classes = 'flash flash-success' %}
+              {% else %}
+                {% set classes = 'flash flash-info' %}
+              {% endif %}
+              <div class="{{ classes }}">
+                <div class="flex items-start gap-3">
+                  <span class="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/80 text-xs font-semibold uppercase text-slate-500 shadow">
+                    {{ loop.index }}
+                  </span>
+                  <div class="flex-1 leading-relaxed">
+                    {{ message }}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="border-t border-slate-200 bg-white/70">
+      <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 text-sm text-slate-500 lg:flex-row lg:items-center lg:justify-between">
+        <p>&copy; {{ current_year or now().year }} Secretaria Municipal de Saúde · Central de Regulação</p>
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="inline-flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-primario-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v8m4-4H8m10-7H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2z" />
+            </svg>
+            Versão {{ app_version or '1.0.0' }}
+          </span>
+          <span class="hidden h-3 w-[1px] bg-slate-300 lg:block"></span>
+          <p>Suporte: <a href="mailto:ti.saude@cosmopolis.sp.gov.br" class="font-medium text-primario-600 hover:text-primario-700">ti.saude@cosmopolis.sp.gov.br</a></p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const mobileToggle = document.querySelector("[data-menu-toggle]");
+      const menu = document.querySelector("[data-menu]");
+
+      if (mobileToggle && menu) {
+        const openMenu = () => {
+          menu.classList.remove("hidden");
+          menu.classList.add("flex");
+          mobileToggle.setAttribute("aria-expanded", "true");
+        };
+
+        const closeMenu = () => {
+          menu.classList.add("hidden");
+          menu.classList.remove("flex");
+          mobileToggle.setAttribute("aria-expanded", "false");
+        };
+
+        mobileToggle.addEventListener("click", () => {
+          const isOpen = mobileToggle.getAttribute("aria-expanded") === "true";
+          if (isOpen) {
+            closeMenu();
+          } else {
+            openMenu();
+          }
+        });
+
+        window.addEventListener("resize", () => {
+          if (window.innerWidth >= 1024) {
+            menu.classList.remove("hidden");
+            menu.classList.add("flex");
+            mobileToggle.setAttribute("aria-expanded", "true");
+          } else {
+            closeMenu();
+          }
+        });
+      }
+
+      const dropdowns = document.querySelectorAll("[data-dropdown]");
+      dropdowns.forEach((dropdown) => {
+        const toggle = dropdown.querySelector("[data-dropdown-toggle]");
+        const menu = dropdown.querySelector("[data-dropdown-menu]");
+
+        if (!toggle || !menu) return;
+
+        const openMenu = () => {
+          menu.classList.remove("hidden");
+          menu.dataset.state = "open";
+          toggle.setAttribute("aria-expanded", "true");
+        };
+
+        const closeMenu = () => {
+          menu.classList.add("hidden");
+          menu.dataset.state = "closed";
+          toggle.setAttribute("aria-expanded", "false");
+        };
+
+        toggle.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const isOpen = menu.dataset.state === "open";
+          const closeAll = () => dropdowns.forEach((other) => {
+            const otherMenu = other.querySelector("[data-dropdown-menu]");
+            const otherToggle = other.querySelector("[data-dropdown-toggle]");
+            if (otherMenu && otherToggle && other !== dropdown) {
+              otherMenu.classList.add("hidden");
+              otherMenu.dataset.state = "closed";
+              otherToggle.setAttribute("aria-expanded", "false");
+            }
+          });
+
+          if (isOpen) {
+            closeMenu();
+          } else {
+            closeAll();
+            openMenu();
+          }
+        });
+
+        document.addEventListener("click", (event) => {
+          if (!dropdown.contains(event.target)) {
+            closeMenu();
+          }
+        });
+
+        closeMenu();
+      });
+    });
+  </script>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Usuários · Central de Regulação{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+  <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-slate-800">Usuários</h1>
+      <p class="text-sm text-slate-500">
+        Consulte, edite e gerencie os perfis habilitados para acessar o sistema.
+      </p>
+    </div>
+    <a class="btn-primary inline-flex items-center justify-center"
+       href="{{ url_for('admin.criar_usuario') }}">
+      Novo usuário
+    </a>
+  </header>
+
+  {% if usuarios %}
+    <div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200">
+          <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <tr>
+              <th scope="col" class="px-6 py-3">Nome</th>
+              <th scope="col" class="px-6 py-3">CPF</th>
+              <th scope="col" class="px-6 py-3">Perfil</th>
+              <th scope="col" class="px-6 py-3">Unidade</th>
+              <th scope="col" class="px-6 py-3 text-center">Status</th>
+              <th scope="col" class="px-6 py-3 text-right">Ações</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-sm text-slate-600">
+            {% for usuario in usuarios %}
+              <tr class="hover:bg-slate-50 transition">
+                <td class="px-6 py-4 font-medium text-slate-800">
+                  {{ usuario["nome"] }}
+                </td>
+                <td class="px-6 py-4">
+                  {{ usuario["cpf"] }}
+                </td>
+                <td class="px-6 py-4">
+                  {{ roles_labels.get(usuario["role"], usuario["role"]) }}
+                </td>
+                <td class="px-6 py-4">
+                  {{ usuario["unidade_nome"] or "—" }}
+                </td>
+                <td class="px-6 py-4 text-center">
+                  {% if usuario["ativo"] %}
+                    <span class="badge bg-emerald-100 text-emerald-700">Ativo</span>
+                  {% else %}
+                    <span class="badge bg-slate-200 text-slate-600">Inativo</span>
+                  {% endif %}
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex justify-end gap-2">
+                    <a class="btn-outline text-xs px-3 py-2"
+                       href="{{ url_for('admin.editar_usuario', usuario_id=usuario['id']) }}">
+                      Editar
+                    </a>
+                    <form class="inline-flex"
+                          action="{{ url_for('admin.alterar_status_usuario', usuario_id=usuario['id']) }}"
+                          method="post">
+                      {# Inclua aqui o token CSRF, caso sua aplicação use (ex.: {{ csrf_token() }}) #}
+                      <button type="submit"
+                              class="btn-outline text-xs px-3 py-2 {% if usuario['ativo'] %}text-amber-600 border-amber-400 hover:bg-amber-50{% else %}text-emerald-600 border-emerald-400 hover:bg-emerald-50{% endif %}">
+                        {{ 'Desativar' if usuario['ativo'] else 'Ativar' }}
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% else %}
+    <div class="rounded-lg border border-sky-200 bg-sky-50 px-4 py-6 text-sm text-sky-700">
+      Nenhum usuário cadastrado até o momento.
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

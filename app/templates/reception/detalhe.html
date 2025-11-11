@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Pedido #{{ pedido.id }}{% endblock %}
+{% block content %}
+<div class="space-y-6">
+  <div class="bg-white rounded-lg shadow p-6">
+    <h1 class="text-2xl font-semibold text-slate-700 mb-4">Pedido #{{ pedido.id }}</h1>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-600">
+      <div>
+        <h2 class="font-semibold text-slate-700">Paciente</h2>
+        <p>{{ pedido.paciente_nome }}</p>
+        <p>CPF: {{ pedido.paciente_cpf }}</p>
+        <p>Telefone: {{ pedido.telefone_principal }}{% if pedido.telefone_secundario %} · {{ pedido.telefone_secundario }}{% endif %}</p>
+        <p>E-mail: {{ pedido.email or "—" }}</p>
+      </div>
+      <div>
+        <h2 class="font-semibold text-slate-700">Exame</h2>
+        <p>{{ pedido.exame_nome }}</p>
+        <p>Prioridade: {{ pedido.prioridade or "—" }}</p>
+        <p>Tipo de regulação: {{ pedido.tipo_regulacao or "—" }}</p>
+        <p>Status atual: <span class="badge bg-sky-100 text-sky-700">{{ pedido.status }}</span></p>
+      </div>
+      <div>
+        <h2 class="font-semibold text-slate-700">Agendamento</h2>
+        <p>Data: {{ pedido.data_exame.strftime("%d/%m/%Y") if pedido.data_exame }}</p>
+        <p>Horário: {{ pedido.horario_exame.strftime("%H:%M") if pedido.horario_exame }}</p>
+        <p>Local: {{ pedido.local_exame or "—" }}</p>
+      </div>
+      <div>
+        <h2 class="font-semibold text-slate-700">Situação</h2>
+        <p>Pendente recepção: {{ "Sim" if pedido.pendente_recepcao else "Não" }}</p>
+        <p>Motivo devolução: {{ pedido.motivo_devolucao or "—" }}</p>
+        <p>Motivo cancelamento: {{ pedido.motivo_cancelamento or "—" }}</p>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap justify-end gap-3 mt-6">
+      {% if pedido.pendente_recepcao and pedido.paciente_id %}
+        <a
+          href="{{ url_for('reception.editar_paciente', paciente_id=pedido.paciente_id, next=request.url) }}"
+          class="btn-outline"
+        >
+          Editar paciente
+        </a>
+        <a href="{{ url_for('reception.tratar_devolucao', pedido_id=pedido.id) }}" class="btn-primary">
+          Registrar tratativa
+        </a>
+      {% endif %}
+      <form method="post"
+            action="{{ url_for('reception.cancelar_pedido', pedido_id=pedido.id) }}"
+            onsubmit="return confirm('Confirmar cancelamento do pedido?');">
+        <input type="hidden" name="justificativa" value="">
+        <button type="button" onclick="abrirModalCancelamento()" class="btn-outline">
+          Cancelar pedido
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-xl font-semibold text-slate-700 mb-4">Histórico</h2>
+    <ul class="space-y-3">
+      {% for evento in historico %}
+        <li class="border border-slate-200 rounded p-3 text-sm text-slate-600">
+          <div class="flex justify-between">
+            <span class="font-medium text-slate-700">{{ evento.usuario_nome }}</span>
+            <span class="text-xs text-slate-400">{{ evento.criado_em.strftime("%d/%m/%Y %H:%M") }}</span>
+          </div>
+          <p class="mt-2">{{ evento.descricao or evento.status }}</p>
+        </li>
+      {% else %}
+        <li class="text-sm text-slate-500">Sem eventos registrados.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<div id="modal-cancelamento" class="hidden fixed inset-0 bg-slate-900/50 flex items-center justify-center">
+  <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+    <h3 class="text-lg font-semibold text-slate-700 mb-3">Cancelar pedido</h3>
+    <p class="text-sm text-slate-600 mb-4">Informe a justificativa para o cancelamento.</p>
+    <form id="form-cancelamento" method="post" action="{{ url_for('reception.cancelar_pedido', pedido_id=pedido.id) }}" class="space-y-4">
+      <textarea name="justificativa" rows="3" required class="w-full rounded border-slate-300 focus:border-sky-500 focus:ring-sky-500"></textarea>
+      <div class="flex justify-end gap-3">
+        <button type="button" onclick="fecharModalCancelamento()" class="btn-outline">Voltar</button>
+        <button type="submit" class="btn-primary">Confirmar cancelamento</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% block scripts %}
+<script>
+  function abrirModalCancelamento() {
+    document.getElementById("modal-cancelamento").classList.remove("hidden");
+  }
+  function fecharModalCancelamento() {
+    document.getElementById("modal-cancelamento").classList.add("hidden");
+  }
+</script>
+{% endblock %}
+{% endblock %}

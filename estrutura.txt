@@ -1,0 +1,67 @@
+central-regulacao/
+├─ app/
+│  ├─ __init__.py
+│  ├─ extensions.py
+│  ├─ database.py
+│  ├─ config_helpers.py
+│  ├─ models/
+│  │  └─ usuario.py
+│  ├─ domain/
+│  │  └─ status.py
+│  ├─ utils/
+│  │  ├─ decorators.py
+│  │  └─ security.py
+│  ├─ repositories/
+│  │  ├─ usuarios.py
+│  │  ├─ pacientes.py
+│  │  ├─ unidades.py
+│  │  ├─ exames.py
+│  │  └─ pedidos.py
+│  ├─ services/
+│  │  ├─ pedidos_service.py
+│  │  └─ agendamento_service.py
+│  ├─ blueprints/
+│  │  ├─ auth/
+│  │  │  ├─ __init__.py
+│  │  │  └─ routes.py
+│  │  ├─ dashboards/
+│  │  │  ├─ __init__.py
+│  │  │  └─ routes.py
+│  │  ├─ reception/
+│  │  │  ├─ __init__.py
+│  │  │  └─ routes.py
+│  │  ├─ malote/
+│  │  │  ├─ __init__.py
+│  │  │  └─ routes.py
+│  │  ├─ regulator/
+│  │  │  ├─ __init__.py
+│  │  │  └─ routes.py
+│  │  └─ scheduling/
+│  │     ├─ __init__.py
+│  │     └─ routes.py
+│  ├─ templates/
+│  │  ├─ base.html
+│  │  ├─ components/
+│  │  │  └─ status_badge.html
+│  │  ├─ auth/login.html
+│  │  ├─ dashboards/home.html
+│  │  ├─ reception/
+│  │  │  ├─ list.html
+│  │  │  ├─ form.html
+│  │  │  └─ devolucao.html
+│  │  ├─ malote/list.html
+│  │  ├─ regulator/painel.html
+│  │  └─ scheduling/
+│  │     ├─ municipal.html
+│  │     └─ estadual.html
+│  └─ static/
+│     ├─ css/custom.css
+│     └─ js/main.js
+├─ migrations/
+│  └─ schema.sql
+├─ scripts/
+│  └─ create_user.py
+├─ requirements.txt
+├─ .env.example
+├─ config.py
+└─ run.py

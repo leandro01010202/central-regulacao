@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}
+  {% if unidade %}Editar unidade{% else %}Nova unidade{% endif %} · Central de Regulação
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto bg-white shadow rounded-lg p-6">
+  <h1 class="text-2xl font-semibold text-slate-800 mb-2">
+    {% if unidade %}Editar unidade{% else %}Nova unidade{% endif %}
+  </h1>
+  <p class="text-sm text-slate-500 mb-6">
+    Preencha as informações abaixo e salve para concluir.
+  </p>
+
+  <form method="post" class="space-y-6">
+    <div>
+      <label for="nome" class="block text-sm font-medium text-slate-600 mb-1">
+        Nome da unidade *
+      </label>
+      <input
+        type="text"
+        name="nome"
+        id="nome"
+        required
+        value="{{ unidade.nome if unidade else '' }}"
+        class="block w-full rounded-md border-slate-300 focus:border-sky-500 focus:ring focus:ring-sky-200 focus:ring-opacity-50"
+        placeholder="Ex.: Unidade Básica de Saúde João Paulo II"
+      >
+    </div>
+
+    <div>
+      <span class="block text-sm font-medium text-slate-600 mb-1">
+        Situação
+      </span>
+      <div class="flex items-center gap-4">
+        <label class="inline-flex items-center gap-2 text-sm text-slate-600">
+          <input type="radio" name="ativa" value="1"
+                 {% if not unidade or unidade.ativo %}checked{% endif %}>
+          Ativa
+        </label>
+        <label class="inline-flex items-center gap-2 text-sm text-slate-600">
+          <input type="radio" name="ativa" value="0"
+                 {% if unidade and not unidade.ativo %}checked{% endif %}>
+          Inativa
+        </label>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button type="submit" class="btn-primary">
+        Salvar
+      </button>
+      <a href="{{ url_for('admin.listar_unidades') }}" class="btn-outline">
+        Cancelar
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}

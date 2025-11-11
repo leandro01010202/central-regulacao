@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo_pagina }} · Central de Regulação{% endblock %}
+
+{% block content %}
+<section class="max-w-3xl mx-auto space-y-6">
+  <header class="space-y-2">
+    <h1 class="text-2xl font-semibold text-slate-800">{{ titulo_pagina }}</h1>
+    <p class="text-sm text-slate-500">
+      Preencha todos os campos obrigatórios para cadastrar ou atualizar o usuário na plataforma.
+    </p>
+  </header>
+
+  <div class="bg-white shadow rounded-lg border border-slate-200">
+    <form action="{{ form_action }}" method="post" class="space-y-6 p-6" novalidate>
+      {# Inclua aqui o token CSRF, caso sua aplicação use (ex.: {{ csrf_token() }}) #}
+      {% set form_data = dados_form or {} %}
+      {% set usuario_nome = form_data.get('nome', usuario['nome'] if usuario else '') %}
+      {% set usuario_cpf = form_data.get('cpf', usuario['cpf'] if usuario else '') %}
+      {% set role_atual = form_data.get('role', usuario['role'] if usuario else '') %}
+      {% set unidade_val = form_data.get('unidade_id', usuario['unidade_id'] if usuario else '') %}
+      {% set ativo_val = form_data.get('ativo', '1' if (not usuario or usuario['ativo']) else '0') %}
+
+      <div class="grid gap-5 md:grid-cols-2">
+        <div class="space-y-2">
+          <label for="nome" class="block text-sm font-medium text-slate-700">
+            Nome completo <span class="text-rose-600">*</span>
+          </label>
+          <input
+            type="text"
+            id="nome"
+            name="nome"
+            value="{{ usuario_nome }}"
+            required
+            class="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-800 shadow-sm focus:border-sky-500 focus:ring-sky-500"
+          >
+        </div>
+
+        <div class="space-y-2">
+          <label for="cpf" class="block text-sm font-medium text-slate-700">
+            CPF <span class="text-rose-600">*</span>
+          </label>
+          <input
+            type="text"
+            id="cpf"
+            name="cpf"
+            maxlength="14"
+            placeholder="Somente números"
+            value="{{ usuario_cpf }}"
+            required
+            class="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-800 shadow-sm focus:border-sky-500 focus:ring-sky-500"
+          >
+        </div>
+
+        <div class="space-y-2">
+          <label for="role" class="block text-sm font-medium text-slate-700">
+            Perfil de acesso <span class="text-rose-600">*</span>
+          </label>
+          <select
+            id="role"
+            name="role"
+            required
+            class="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-800 shadow-sm focus:border-sky-500 focus:ring-sky-500"
+          >
+            <option value="" disabled {% if not role_atual %}selected{% endif %}>Selecione...</option>
+            {% for valor, label in roles_opcoes %}
+              <option value="{{ valor }}" {% if valor == role_atual %}selected{% endif %}>
+                {{ label }}
+              </option>
+            {% endfor %}
+          </select>
+          <p class="text-xs text-slate-500">
+            Usuários administradores não precisam estar vinculados a uma unidade.
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <label for="unidade_id" class="block text-sm font-medium text-slate-700">
+            Unidade
+          </label>
+          <select
+            id="unidade_id"
+            name="unidade_id"
+            class="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-800 shadow-sm focus:border-sky-500 focus:ring-sky-500"
+          >
+            <option value="">— Não vincular —</option>
+            {% for unidade in unidades %}
+              <option value="{{ unidade['id'] }}" {% if unidade['id']|string == unidade_val|string %}selected{% endif %}>
+                {{ unidade['nome'] }}
+              </option>
+            {% endfor %}
+          </select>
+          <p class="text-xs text-slate-500">
+            Obrigatório para perfis diferentes de “Administrador”.
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <label for="senha" class="block text-sm font-medium text-slate-700">
+            Senha {% if not usuario %}<span class="text-rose-600">*</span>{% endif %}
+          </label>
+          <input
+            type="password"
+            id="senha"
+            name="senha"
+            {% if not usuario %}required{% endif %}
+            class="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-800 shadow-sm focus:border-sky-500 focus:ring-sky-500"
+          >
+          {% if usuario %}
+            <p class="text-xs text-slate-500">
+              Deixe em branco para manter a senha atual.
+            </p>
+          {% endif %}
+        </div>
+
+        <div class="space-y-2">
+          <label for="ativo" class="block text-sm font-medium text-slate-700">
+            Status
+          </label>
+          <select
+            id="ativo"
+            name="ativo"
+            class="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-800 shadow-sm focus:border-sky-500 focus:ring-sky-500"
+          >
+            <option value="1" {% if ativo_val == '1' %}selected{% endif %}>Ativo</option>
+            <option value="0" {% if ativo_val == '0' %}selected{% endif %}>Inativo</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
+        <a href="{{ url_for('admin.listar_usuarios') }}" class="btn-outline text-center">
+          Cancelar
+        </a>
+        <button type="submit" class="btn-primary text-center">
+          Salvar
+        </button>
+      </div>
+    </form>
+
+    <footer class="border-t border-slate-100 px-6 py-3 text-xs text-slate-400">
+      Campos marcados com <span class="text-rose-600">*</span> são obrigatórios.
+    </footer>
+  </div>
+</section>
+{% endblock %}

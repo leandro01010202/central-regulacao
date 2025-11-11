@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Unidades de Saúde · Central de Regulação{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow rounded-lg p-6">
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-semibold text-slate-800">Unidades de Saúde</h1>
+      <p class="text-sm text-slate-500">Gerencie as unidades cadastradas no sistema.</p>
+    </div>
+    <a href="{{ url_for('admin.criar_unidade') }}" class="btn-primary">
+      Nova unidade
+    </a>
+  </div>
+
+  {% if unidades %}
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+        <thead class="bg-slate-50">
+          <tr>
+            <th class="px-4 py-3 font-semibold text-slate-600 uppercase tracking-wide">ID</th>
+            <th class="px-4 py-3 font-semibold text-slate-600 uppercase tracking-wide">Nome</th>
+            <th class="px-4 py-3 font-semibold text-slate-600 uppercase tracking-wide">Status</th>
+            <th class="px-4 py-3 font-semibold text-slate-600 uppercase tracking-wide">Criada em</th>
+            <th class="px-4 py-3 font-semibold text-slate-600 uppercase tracking-wide">Atualizada em</th>
+            <th class="px-4 py-3 font-semibold text-slate-600 uppercase tracking-wide">Ações</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for unidade in unidades %}
+            <tr>
+              <td class="px-4 py-3 text-slate-700">{{ unidade.id }}</td>
+              <td class="px-4 py-3 text-slate-700">{{ unidade.nome }}</td>
+              <td class="px-4 py-3">
+                {% if unidade.ativo %}
+                  <span class="badge bg-emerald-100 text-emerald-700 border border-emerald-200">Ativa</span>
+                {% else %}
+                  <span class="badge bg-rose-100 text-rose-700 border border-rose-200">Inativa</span>
+                {% endif %}
+              </td>
+              <td class="px-4 py-3 text-slate-500">
+                {{ unidade.criado_em|default('-', true) }}
+              </td>
+              <td class="px-4 py-3 text-slate-500">
+                {{ unidade.atualizado_em|default('-', true) }}
+              </td>
+              <td class="px-4 py-3 flex flex-wrap gap-2">
+                <a href="{{ url_for('admin.editar_unidade', unidade_id=unidade.id) }}"
+                   class="btn-outline text-xs">
+                  Editar
+                </a>
+                <form method="post"
+                      action="{{ url_for('admin.alterar_status_unidade', unidade_id=unidade.id) }}"
+                      onsubmit="return confirm('Tem certeza que deseja alterar o status desta unidade?');">
+                  <button type="submit"
+                          class="btn-primary text-xs">
+                    {% if unidade.ativo %}Desativar{% else %}Ativar{% endif %}
+                  </button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-slate-500 text-sm">
+      Nenhuma unidade cadastrada até o momento.
+    </p>
+  {% endif %}
+</div>
+{% endblock %}

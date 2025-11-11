@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}Editar paciente{% endblock %}
+
+{% block content %}
+<section class="max-w-3xl mx-auto space-y-6">
+  <header>
+    <h1 class="text-2xl font-semibold text-slate-800">Editar paciente</h1>
+    <p class="text-sm text-slate-500">
+      Atualize as informações cadastrais antes de reenviar o pedido para a triagem.
+    </p>
+  </header>
+
+  <div class="bg-white shadow rounded-lg border border-slate-200">
+    <form method="post" action="{{ form_action }}" class="space-y-6 p-6">
+      <input type="hidden" name="next" value="{{ next_url }}">
+      {% set form_data = dados_form or {} %}
+
+      <div class="grid gap-6 sm:grid-cols-2">
+        <div class="space-y-2 sm:col-span-2">
+          <label for="nome_paciente" class="block text-sm font-medium text-slate-700">
+            Nome completo <span class="text-rose-600">*</span>
+          </label>
+          <input
+            type="text"
+            id="nome_paciente"
+            name="nome_paciente"
+            value="{{ form_data.get('nome_paciente', paciente['nome']) }}"
+            required
+            class="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-800 shadow-sm focus:border-sky-500 focus:ring-sky-500"
+          >
+        </div>
+
+        <div class="space-y-2">
+          <label for="cpf_paciente" class="block text-sm font-medium text-slate-700">
+            CPF <span class="text-rose-600">*</span>
+          </label>
+          <input
+            type="text"
+            id="cpf_paciente"
+            name="cpf_paciente"
+            maxlength="14"
+            value="{{ form_data.get('cpf_paciente', paciente['cpf']) }}"
+            required
+            class="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-800 shadow-sm focus:border-sky-500 focus:ring-sky-500"
+          >
+        </div>
+
+        <div class="space-y-2">
+          <label for="data_nascimento" class="block text-sm font-medium text-slate-700">
+            Data de nascimento
+          </label>
+          <input
+            type="text"
+            id="data_nascimento"
+            name="data_nascimento"
+            placeholder="dd/mm/aaaa"
+            value="{{ form_data.get('data_nascimento', data_nascimento_fmt or '') }}"
+            class="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-800 shadow-sm focus:border-sky-500 focus:ring-sky-500"
+          >
+        </div>
+
+        <div class="space-y-2">
+          <label for="telefone_principal" class="block text-sm font-medium text-slate-700">
+            Telefone principal
+          </label>
+          <input
+            type="text"
+            id="telefone_principal"
+            name="telefone_principal"
+            value="{{ form_data.get('telefone_principal', paciente['telefone_principal'] or '') }}"
+            class="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-800 shadow-sm focus:border-sky-500 focus:ring-sky-500"
+          >
+        </div>
+
+        <div class="space-y-2">
+          <label for="telefone_secundario" class="block text-sm font-medium text-slate-700">
+            Telefone secundário
+          </label>
+          <input
+            type="text"
+            id="telefone_secundario"
+            name="telefone_secundario"
+            value="{{ form_data.get('telefone_secundario', paciente['telefone_secundario'] or '') }}"
+            class="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-800 shadow-sm focus:border-sky-500 focus:ring-sky-500"
+          >
+        </div>
+
+        <div class="space-y-2">
+          <label for="email" class="block text-sm font-medium text-slate-700">
+            E-mail
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value="{{ form_data.get('email', paciente['email'] or '') }}"
+            class="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-800 shadow-sm focus:border-sky-500 focus:ring-sky-500"
+          >
+        </div>
+
+        <div class="space-y-2">
+          <label for="cartao_sus" class="block text-sm font-medium text-slate-700">
+            Cartão SUS
+          </label>
+          <input
+            type="text"
+            id="cartao_sus"
+            name="cartao_sus"
+            value="{{ form_data.get('cartao_sus', paciente['cartao_sus'] or '') }}"
+            class="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-800 shadow-sm focus:border-sky-500 focus:ring-sky-500"
+          >
+        </div>
+
+        <div class="space-y-2 sm:col-span-2">
+          <label for="endereco" class="block text-sm font-medium text-slate-700">
+            Endereço completo
+          </label>
+          <textarea
+            id="endereco"
+            name="endereco"
+            rows="3"
+            class="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-800 shadow-sm focus:border-sky-500 focus:ring-sky-500"
+          >{{ form_data.get('endereco', paciente['endereco'] or '') }}</textarea>
+        </div>
+
+        {% if current_user.role == "admin" %}
+        <div class="space-y-2 sm:col-span-2">
+          <label for="unidade_id" class="block text-sm font-medium text-slate-700">
+            Unidade do paciente <span class="text-rose-600">*</span>
+          </label>
+          <select
+            id="unidade_id"
+            name="unidade_id"
+            class="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-800 shadow-sm focus:border-sky-500 focus:ring-sky-500"
+            required
+          >
+            <option value="" disabled {% if not form_data.get('unidade_id') and not paciente['unidade_id'] %}selected{% endif %}>Selecione...</option>
+            {% for unidade in unidades %}
+              <option value="{{ unidade['id'] }}"
+                {% set unidade_atual = form_data.get('unidade_id', paciente['unidade_id']) %}
+                {% if unidade['id'] == unidade_atual %}selected{% endif %}
+              >
+                {{ unidade['nome'] }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
+        <a href="{{ next_url or url_for('reception.listar_pedidos') }}" class="btn-outline text-center">
+          Cancelar
+        </a>
+        <button type="submit" class="btn-primary text-center">
+          Salvar alterações
+        </button>
+      </div>
+    </form>
+
+    <footer class="border-t border-slate-100 px-6 py-3 text-xs text-slate-400">
+      Campos marcados com <span class="text-rose-600">*</span> são obrigatórios.
+    </footer>
+  </div>
+</section>
+{% endblock %}
