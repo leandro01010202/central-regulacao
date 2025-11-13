@@ -133,3 +133,18 @@ CREATE TABLE IF NOT EXISTS conversation_users (
     FOREIGN KEY (conversation_id) REFERENCES conversations(id),
     FOREIGN KEY (user_id) REFERENCES usuarios(id)
 );
+
+CREATE TABLE IF NOT EXISTS consultas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    paciente_id INT NOT NULL,
+    especialidade VARCHAR(150),
+    status VARCHAR(64) NOT NULL,
+    prioridade ENUM('P1','P2') NULL,
+    data_consulta DATE,
+    horario_consulta TIME,
+    local_consulta VARCHAR(255),
+    tipo_regulacao ENUM('municipal','estadual'),
+    observacoes TEXT,
+    tentativas_contato INT DEFAULT 0,
+    FOREIGN KEY (paciente_id) REFERENCES pacientes(id)
+);

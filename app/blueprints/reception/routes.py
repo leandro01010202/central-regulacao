@@ -139,6 +139,12 @@ def listar_pedidos():
 @roles_required("recepcao", "admin")
 def novo_pedido():
     exames = exames_repo.listar_exames()
+    # 🔹 futuramente poderá vir de uma tabela consultas
+    consultas = [
+        {"id": 1, "especialidade": "Cardiologia"},
+        {"id": 2, "especialidade": "Ortopedia"},
+        {"id": 3, "especialidade": "Dermatologia"},
+    ]
     unidades = unidades_repo.listar_unidades_ativas()
     dados_form = dict(request.form) if request.method == "POST" else {}
 
@@ -152,34 +158,54 @@ def novo_pedido():
             return render_template(
                 "reception/form.html",
                 exames=exames,
+                consultas=consultas,
                 unidades=unidades,
                 unidade_atual=current_user.unidade_id,
                 dados_form=dados_form,
             )
 
         paciente_data = _coletar_dados_paciente(unidade_id)
-        exame_id_bruto = (request.form.get("exame_id") or "").strip()
+        tipo_solicitacao = (request.form.get("tipo_solicitacao") or "exame").strip().lower()
         observacoes = (request.form.get("observacoes") or "").strip() or None
 
+        # 🔹 Dependendo do tipo, pegamos o ID certo
+        exame_id = None
+        consulta_id = None
         erros = []
+
+        if tipo_solicitacao == "exame":
+            exame_id_bruto = (request.form.get("exame_id") or "").strip()
+            if not exame_id_bruto:
+                erros.append("Selecione o exame solicitado.")
+            else:
+                try:
+                    exame_id = int(exame_id_bruto)
+                except ValueError:
+                    erros.append("Exame inválido selecionado.")
+                else:
+                    ids_exames_validos = {exame["id"] for exame in exames}
+                    if exame_id not in ids_exames_validos:
+                        erros.append("Exame solicitado não está disponível.")
+
+        elif tipo_solicitacao == "consulta":
+            consulta_id_bruto = (request.form.get("consulta_id") or "").strip()
+            if not consulta_id_bruto:
+                erros.append("Selecione a consulta solicitada.")
+            else:
+                try:
+                    consulta_id = int(consulta_id_bruto)
+                except ValueError:
+                    erros.append("Consulta inválida selecionada.")
+                else:
+                    ids_consultas_validos = {c["id"] for c in consultas}
+                    if consulta_id not in ids_consultas_validos:
+                        erros.append("Consulta solicitada não está disponível.")
+
+        # Validação básica do paciente
         if not paciente_data["nome"]:
             erros.append("Nome do paciente é obrigatório.")
         if not paciente_data["cpf"]:
             erros.append("CPF do paciente é obrigatório.")
-        if not exame_id_bruto:
-            erros.append("Selecione o exame solicitado.")
-
-        exame_id = None
-        if exame_id_bruto:
-            try:
-                exame_id = int(exame_id_bruto)
-            except ValueError:
-                erros.append("Exame inválido selecionado.")
-
-        ids_exames_validos = {exame["id"] for exame in exames}
-        if exame_id and exame_id not in ids_exames_validos:
-            erros.append("Exame solicitado não está disponível.")
-
         if paciente_data["data_nascimento"] is None and request.form.get("data_nascimento"):
             erros.append("Data de nascimento em formato inválido (use dd/mm/aaaa ou yyyy-mm-dd).")
 
@@ -189,11 +215,13 @@ def novo_pedido():
             return render_template(
                 "reception/form.html",
                 exames=exames,
+                consultas=consultas,
                 unidades=unidades,
                 unidade_atual=current_user.unidade_id,
                 dados_form=dados_form,
             )
 
+        # 🔹 Criação/atualização de paciente
         paciente_existente = pacientes_repo.obter_por_cpf(paciente_data["cpf"])
         if paciente_existente:
             pacientes_repo.atualizar_paciente(paciente_existente["id"], paciente_data)
@@ -201,32 +229,45 @@ def novo_pedido():
         else:
             paciente_id = pacientes_repo.criar_paciente(paciente_data)
 
-        pedido_id = pedidos_repo.criar_pedido(
-            {
-                "paciente_id": paciente_id,
-                "exame_id": exame_id,
-                "unidade_id": unidade_id,
-                "usuario_criacao": current_user.id,
-                "observacoes": observacoes,
-            }
-        )
+        # 🔹 Criação do pedido
+        dados_pedido = {
+            "paciente_id": paciente_id,
+            "unidade_id": unidade_id,
+            "usuario_criacao": current_user.id,
+            "observacoes": observacoes,
+        }
+
+        if tipo_solicitacao == "exame":
+            dados_pedido["exame_id"] = exame_id
+        else:
+            # 🔹 opcionalmente: criar campo `consulta_id` na tabela pedidos
+            dados_pedido["exame_id"] = None
+            dados_pedido["observacoes"] = (observacoes or "") + f" [CONSULTA ID {consulta_id}]"
+
+        pedido_id = pedidos_repo.criar_pedido(dados_pedido)
 
         registrar_historico(
             pedido_id=pedido_id,
             status=StatusPedido.AGUARDANDO_TRIAGEM,
-            descricao="Pedido criado pela recepção.",
+            descricao=f"Pedido de {tipo_solicitacao} criado pela recepção.",
             usuario_id=current_user.id,
         )
-        flash("Pedido criado e enviado para triagem do malote.", "success")
+        flash(f"Pedido de {tipo_solicitacao} criado e enviado para triagem.", "success")
         return redirect(url_for("reception.listar_pedidos"))
 
     return render_template(
         "reception/form.html",
         exames=exames,
+        consultas=[
+            {"id": 1, "especialidade": "Cardiologia"},
+            {"id": 2, "especialidade": "Ortopedia"},
+            {"id": 3, "especialidade": "Dermatologia"},
+        ],
         unidades=unidades,
         unidade_atual=current_user.unidade_id,
         dados_form=dados_form,
     )
+
 
 
 @reception_bp.route("/pedidos/<int:pedido_id>")

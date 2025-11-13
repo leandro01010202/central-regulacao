@@ -1,6 +1,163 @@
 {% extends "base.html" %}
 {% block title %}Agendamento Municipal{% endblock %}
+
 {% block content %}
 <h1 class="text-2xl font-semibold text-slate-700 mb-6">Agendamento Municipal</h1>
-{% include "scheduling/partials/lista.html" %}
+
+<!-- Abas -->
+<div class="border-b border-gray-200 mb-4">
+  <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="tabs" role="tablist">
+    <li class="me-2" role="presentation">
+      <button class="inline-block p-4 border-b-2 rounded-t-lg active-tab"
+              id="tab-exames"
+              data-tab-target="exames"
+              type="button"
+              role="tab">
+        Exames
+      </button>
+    </li>
+    <li class="me-2" role="presentation">
+      <button class="inline-block p-4 border-b-2 rounded-t-lg text-gray-500 hover:text-gray-600 hover:border-gray-300"
+              id="tab-consultas"
+              data-tab-target="consultas"
+              type="button"
+              role="tab">
+        Consultas
+      </button>
+    </li>
+  </ul>
+</div>
+
+<!-- Conteúdo das abas -->
+<div id="tab-content">
+  <!-- ABA EXAMES -->
+  <div id="tab-exames-content" class="tab-pane block">
+    
+    <!-- 🔹 Filtros -->
+    <form method="GET" action="{{ url_for('scheduling.lista', tipo=tipo) }}" 
+          class="mb-6 flex flex-wrap items-end gap-4 bg-gray-50 p-4 rounded-md border border-gray-200">
+      
+      <!-- Ano -->
+      <div>
+        <label for="ano" class="block text-sm font-medium text-gray-700">Ano</label>
+        <select name="ano" id="ano" class="mt-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+          <option value="">Todos</option>
+          {% for a in anos_disponiveis %}
+            <option value="{{ a }}" {% if a == ano_selecionado %}selected{% endif %}>{{ a }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Mês -->
+      <div>
+        <label for="mes" class="block text-sm font-medium text-gray-700">Mês</label>
+        <select name="mes" id="mes" class="mt-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+          <option value="">Todos</option>
+          {% for m_num, m_nome in meses %}
+            <option value="{{ m_num }}" {% if m_num == mes_selecionado %}selected{% endif %}>{{ m_nome }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Prioridade -->
+      <div>
+        <label for="prioridade" class="block text-sm font-medium text-gray-700">Prioridade</label>
+        <select name="prioridade" id="prioridade" class="mt-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+          <option value="">Todas</option>
+          <option value="P1" {% if prioridade_selecionada == 'P1' %}selected{% endif %}>P1</option>
+          <option value="P2" {% if prioridade_selecionada == 'P2' %}selected{% endif %}>P2</option>
+        </select>
+      </div>
+
+      <!-- Botão -->
+      <div>
+        <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+          Filtrar
+        </button>
+      </div>
+    </form>
+
+    <!-- 🔹 Tabela de exames (dados filtrados) -->
+    {% include "scheduling/partials/lista.html" %}
+  </div>
+
+  <!-- ABA CONSULTAS -->
+  <div id="tab-consultas-content" class="tab-pane hidden">
+  <!-- 🔹 Filtros -->
+    <form method="GET" action="{{ url_for('scheduling.lista', tipo=tipo) }}"
+            class="mb-6 flex flex-wrap items-end gap-4 bg-gray-50 p-4 rounded-md border border-gray-200">
+        <input type="hidden" name="aba" value="consultas">
+
+        <!-- Ano -->
+        <div>
+        <label for="ano_consulta" class="block text-sm font-medium text-gray-700">Ano</label>
+        <select name="ano" id="ano_consulta" class="mt-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            <option value="">Todos</option>
+            {% for a in anos_disponiveis %}
+            <option value="{{ a }}" {% if a == ano_selecionado %}selected{% endif %}>{{ a }}</option>
+            {% endfor %}
+        </select>
+        </div>
+
+        <!-- Mês -->
+        <div>
+        <label for="mes_consulta" class="block text-sm font-medium text-gray-700">Mês</label>
+        <select name="mes" id="mes_consulta" class="mt-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            <option value="">Todos</option>
+            {% for m_num, m_nome in meses %}
+            <option value="{{ m_num }}" {% if m_num == mes_selecionado %}selected{% endif %}>{{ m_nome }}</option>
+            {% endfor %}
+        </select>
+        </div>
+
+        <!-- Prioridade -->
+        <div>
+        <label for="prioridade_consulta" class="block text-sm font-medium text-gray-700">Prioridade</label>
+        <select name="prioridade" id="prioridade_consulta" class="mt-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            <option value="">Todas</option>
+            <option value="P1" {% if prioridade_selecionada == 'P1' %}selected{% endif %}>P1</option>
+            <option value="P2" {% if prioridade_selecionada == 'P2' %}selected{% endif %}>P2</option>
+        </select>
+        </div>
+
+        <!-- Botão -->
+        <div>
+        <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            Filtrar
+        </button>
+        </div>
+    </form>
+
+    <!-- 🔹 Tabela de Consultas -->
+    {% include "scheduling/partials/lista_consultas.html" %}
+</div>
+
+
+<!-- Script simples de alternância de abas -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const tabs = document.querySelectorAll("[data-tab-target]");
+  const tabContents = document.querySelectorAll(".tab-pane");
+
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      // Resetar estilos
+      tabs.forEach(t => t.classList.remove("active-tab", "border-blue-500", "text-blue-600"));
+      tabContents.forEach(content => content.classList.add("hidden"));
+
+      // Ativar o tab selecionado
+      const target = document.getElementById(`tab-${tab.dataset.tabTarget}-content`);
+      tab.classList.add("active-tab", "border-blue-500", "text-blue-600");
+      target.classList.remove("hidden");
+    });
+  });
+});
+</script>
+
+<style>
+  .active-tab {
+    color: #2563eb; /* azul-600 */
+    border-color: #2563eb;
+  }
+</style>
 {% endblock %}

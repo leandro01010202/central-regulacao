@@ -1,19 +1,22 @@
 from typing import List, Optional
-
 from app.domain.status import StatusPedido
 from app.extensions import mysql
 
 
+# ==========================================================
+# 🧾 Criar Pedido (Exame ou Consulta)
+# ==========================================================
 def criar_pedido(dados: dict) -> int:
     query = """
         INSERT INTO pedidos
-        (paciente_id, exame_id, unidade_id, status, tipo_regulacao, prioridade,
+        (paciente_id, exame_id, consulta_id, unidade_id, status, tipo_regulacao, prioridade,
          usuario_criacao, usuario_atualizacao, observacoes, pendente_recepcao)
-        VALUES (%s, %s, %s, %s, NULL, NULL, %s, %s, %s, 0)
+        VALUES (%s, %s, %s, %s, %s, NULL, NULL, %s, %s, %s, 0)
     """
     valores = (
         dados["paciente_id"],
-        dados["exame_id"],
+        dados.get("exame_id"),
+        dados.get("consulta_id"),
         dados["unidade_id"],
         StatusPedido.AGUARDANDO_TRIAGEM.value,
         dados["usuario_criacao"],
@@ -25,6 +28,9 @@ def criar_pedido(dados: dict) -> int:
         return cursor.lastrowid
 
 
+# ==========================================================
+# 🛠 Atualizar campos
+# ==========================================================
 def atualizar_campos(pedido_id: int, campos: dict):
     set_clause = ", ".join([f"{coluna}=%s" for coluna in campos.keys()])
     valores = list(campos.values())
@@ -34,6 +40,9 @@ def atualizar_campos(pedido_id: int, campos: dict):
         cursor.execute(query, tuple(valores))
 
 
+# ==========================================================
+# 🔎 Obter Pedido por ID
+# ==========================================================
 def obter_por_id(pedido_id: int) -> Optional[dict]:
     query = """
         SELECT p.*,
@@ -45,18 +54,23 @@ def obter_por_id(pedido_id: int) -> Optional[dict]:
                pa.cartao_sus,
                pa.data_nascimento,
                e.nome AS exame_nome,
+               c.nome AS consulta_nome,
                un.nome AS unidade_nome
         FROM pedidos p
         JOIN pacientes pa ON pa.id = p.paciente_id
-        JOIN exames e ON e.id = p.exame_id
+        LEFT JOIN exames e ON e.id = p.exame_id
+        LEFT JOIN consultas c ON c.id = p.consulta_id
         JOIN unidades_saude un ON un.id = p.unidade_id
         WHERE p.id = %s
     """
-    with mysql.get_cursor() as (_, cursor):
+    with mysql.get_cursor(dictionary=True) as (_, cursor):
         cursor.execute(query, (pedido_id,))
         return cursor.fetchone()
 
 
+# ==========================================================
+# 📋 Listar por unidade
+# ==========================================================
 def listar_por_unidade(unidade_id: int) -> List[dict]:
     query = """
         SELECT p.id,
@@ -67,18 +81,22 @@ def listar_por_unidade(unidade_id: int) -> List[dict]:
                p.pendente_recepcao,
                pa.nome AS paciente_nome,
                pa.cpf AS paciente_cpf,
-               e.nome AS exame_nome
+               COALESCE(e.nome, c.nome) AS nome_solicitacao
         FROM pedidos p
         JOIN pacientes pa ON pa.id = p.paciente_id
-        JOIN exames e ON e.id = p.exame_id
+        LEFT JOIN exames e ON e.id = p.exame_id
+        LEFT JOIN consultas c ON c.id = p.consulta_id
         WHERE p.unidade_id = %s
         ORDER BY p.data_atualizacao DESC
     """
-    with mysql.get_cursor() as (_, cursor):
+    with mysql.get_cursor(dictionary=True) as (_, cursor):
         cursor.execute(query, (unidade_id,))
         return cursor.fetchall()
 
 
+# ==========================================================
+# 📦 Listar para Malote
+# ==========================================================
 def listar_para_malote() -> List[dict]:
     query = """
         SELECT p.id,
@@ -89,15 +107,16 @@ def listar_para_malote() -> List[dict]:
                un.nome AS unidade_nome,
                pa.nome AS paciente_nome,
                pa.cpf AS paciente_cpf,
-               e.nome AS exame_nome
+               COALESCE(e.nome, c.nome) AS nome_solicitacao
         FROM pedidos p
         JOIN pacientes pa ON pa.id = p.paciente_id
-        JOIN exames e ON e.id = p.exame_id
+        LEFT JOIN exames e ON e.id = p.exame_id
+        LEFT JOIN consultas c ON c.id = p.consulta_id
         JOIN unidades_saude un ON un.id = p.unidade_id
         WHERE p.status IN (%s, %s)
         ORDER BY un.nome, p.data_solicitacao
     """
-    with mysql.get_cursor() as (_, cursor):
+    with mysql.get_cursor(dictionary=True) as (_, cursor):
         cursor.execute(
             query,
             (
@@ -108,6 +127,9 @@ def listar_para_malote() -> List[dict]:
         return cursor.fetchall()
 
 
+# ==========================================================
+# 🩺 Listar para Médico Regulador
+# ==========================================================
 def listar_para_medico(tipo_regulacao: str) -> List[dict]:
     if tipo_regulacao not in ("municipal", "estadual"):
         return []
@@ -124,24 +146,34 @@ def listar_para_medico(tipo_regulacao: str) -> List[dict]:
                pa.nome AS paciente_nome,
                pa.cpf AS paciente_cpf,
                pa.telefone_principal,
-               e.nome AS exame_nome,
+               COALESCE(e.nome, c.nome) AS nome_solicitacao,
                un.nome AS unidade_nome,
                p.data_solicitacao
         FROM pedidos p
         JOIN pacientes pa ON pa.id = p.paciente_id
-        JOIN exames e ON e.id = p.exame_id
+        LEFT JOIN exames e ON e.id = p.exame_id
+        LEFT JOIN consultas c ON c.id = p.consulta_id
         JOIN unidades_saude un ON un.id = p.unidade_id
         WHERE p.status = %s
         ORDER BY p.prioridade ASC, p.data_solicitacao ASC
     """
-    with mysql.get_cursor() as (_, cursor):
+    with mysql.get_cursor(dictionary=True) as (_, cursor):
         cursor.execute(query, (status_esperado,))
         return cursor.fetchall()
 
 
-def listar_para_agendador(tipo_regulacao: str) -> List[dict]:
+# ==========================================================
+# 📅 Listar para Agendador (com filtros)
+# ==========================================================
+def listar_para_agendador(
+    tipo_regulacao: str,
+    ano: Optional[int] = None,
+    mes: Optional[int] = None,
+    prioridade: Optional[str] = None
+) -> List[dict]:
     if tipo_regulacao not in ("municipal", "estadual"):
         return []
+
     status_validos = (
         StatusPedido.APROVADO_MUNICIPAL.value,
         StatusPedido.AGENDAMENTO_EM_ANDAMENTO.value,
@@ -149,32 +181,53 @@ def listar_para_agendador(tipo_regulacao: str) -> List[dict]:
         StatusPedido.APROVADO_ESTADUAL.value,
         StatusPedido.AGENDAMENTO_EM_ANDAMENTO.value,
     )
+
     query = """
-        SELECT p.id,
-               p.status,
-               p.tentativas_contato,
-               p.data_exame,
-               p.horario_exame,
-               p.local_exame,
-               pa.nome AS paciente_nome,
-               pa.cpf AS paciente_cpf,
-               pa.telefone_principal,
-               pa.telefone_secundario,
-               e.nome AS exame_nome,
-               un.nome AS unidade_nome
+        SELECT 
+            p.id,
+            p.status,
+            p.tentativas_contato,
+            p.data_solicitacao,
+            p.data_exame,
+            p.horario_exame,
+            p.local_exame,
+            p.prioridade,
+            pa.nome AS paciente_nome,
+            pa.cpf AS paciente_cpf,
+            pa.telefone_principal,
+            pa.telefone_secundario,
+            COALESCE(e.nome, c.nome) AS nome_solicitacao,
+            un.nome AS unidade_nome
         FROM pedidos p
         JOIN pacientes pa ON pa.id = p.paciente_id
-        JOIN exames e ON e.id = p.exame_id
+        LEFT JOIN exames e ON e.id = p.exame_id
+        LEFT JOIN consultas c ON c.id = p.consulta_id
         JOIN unidades_saude un ON un.id = p.unidade_id
         WHERE p.status IN (%s, %s)
           AND p.tipo_regulacao = %s
-        ORDER BY p.data_atualizacao ASC
     """
-    with mysql.get_cursor() as (_, cursor):
-        cursor.execute(query, (status_validos[0], status_validos[1], tipo_regulacao))
+    params = [status_validos[0], status_validos[1], tipo_regulacao]
+
+    if ano:
+        query += " AND YEAR(p.data_solicitacao) = %s"
+        params.append(ano)
+    if mes:
+        query += " AND MONTH(p.data_solicitacao) = %s"
+        params.append(mes)
+    if prioridade:
+        query += " AND p.prioridade = %s"
+        params.append(prioridade)
+
+    query += " ORDER BY p.prioridade ASC, p.data_solicitacao DESC"
+
+    with mysql.get_cursor(dictionary=True) as (_, cursor):
+        cursor.execute(query, tuple(params))
         return cursor.fetchall()
 
 
+# ==========================================================
+# 🕓 Histórico de Pedido
+# ==========================================================
 def obter_historico(pedido_id: int) -> list[dict]:
     query = """
         SELECT h.id,
@@ -187,13 +240,15 @@ def obter_historico(pedido_id: int) -> list[dict]:
         WHERE h.pedido_id = %s
         ORDER BY h.criado_em DESC
     """
-    with mysql.get_cursor() as (_, cursor):
+    with mysql.get_cursor(dictionary=True) as (_, cursor):
         cursor.execute(query, (pedido_id,))
         return cursor.fetchall()
 
 
+# ==========================================================
+# 👤 Listar pedidos de um paciente
+# ==========================================================
 def listar_por_paciente(paciente_id: int) -> list[dict]:
-    """Lista todos os pedidos de um paciente específico"""
     query = """
         SELECT 
             p.id,
@@ -210,12 +265,13 @@ def listar_por_paciente(paciente_id: int) -> list[dict]:
             p.motivo_devolucao,
             pac.nome as paciente_nome,
             pac.cpf as paciente_cpf,
-            e.nome as exame_nome,
+            COALESCE(e.nome, c.nome) as nome_solicitacao,
             u.nome as unidade_nome,
             u_criacao.nome as usuario_criacao_nome
         FROM pedidos p
         JOIN pacientes pac ON p.paciente_id = pac.id
-        JOIN exames e ON p.exame_id = e.id
+        LEFT JOIN exames e ON p.exame_id = e.id
+        LEFT JOIN consultas c ON c.id = p.consulta_id
         JOIN unidades_saude u ON p.unidade_id = u.id
         JOIN usuarios u_criacao ON p.usuario_criacao = u_criacao.id
         WHERE p.paciente_id = %s
