@@ -7,15 +7,22 @@
       <h1 class="text-2xl font-semibold text-slate-700">Painel do Médico Regulador</h1>
       <p class="text-sm text-slate-500">Visualize e trate os pedidos encaminhados pelo malote.</p>
     </div>
-    <div class="flex gap-2">
-      <a href="{{ url_for('regulator.painel', tipo='municipal') }}"
-         class="px-4 py-2 rounded {{ 'bg-sky-600 text-white' if tipo == 'municipal' else 'bg-slate-100 text-slate-600' }}">
-        Município
-      </a>
-      <a href="{{ url_for('regulator.painel', tipo='estadual') }}"
-         class="px-4 py-2 rounded {{ 'bg-sky-600 text-white' if tipo == 'estadual' else 'bg-slate-100 text-slate-600' }}">
-        Cross / Estadual
-      </a>
+    <div class="flex items-center gap-2">
+      <div class="flex gap-2">
+        <a href="{{ url_for('regulator.painel', tipo='municipal', unidade=filtros.unidade, categoria=filtros.categoria, cpf=filtros.cpf, nome=filtros.nome) }}"
+           class="px-4 py-2 rounded {{ 'bg-sky-600 text-white' if tipo == 'municipal' else 'bg-slate-100 text-slate-600' }}">
+          Município
+        </a>
+        <a href="{{ url_for('regulator.painel', tipo='estadual', unidade=filtros.unidade, categoria=filtros.categoria, cpf=filtros.cpf, nome=filtros.nome) }}"
+           class="px-4 py-2 rounded {{ 'bg-sky-600 text-white' if tipo == 'estadual' else 'bg-slate-100 text-slate-600' }}">
+          Cross / Estadual
+        </a>
+      </div>
+      {% if preferencia_tipo and preferencia_tipo != tipo %}
+        <span class="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
+          🔔 Preferência: {{ 'Municipal' if preferencia_tipo == 'municipal' else 'Cross/Estadual' }}
+        </span>
+      {% endif %}
     </div>
   </div>
 
@@ -162,6 +169,13 @@
                 </div>
               </td>
               <td class="px-4 py-3">
+                <!-- Campos hidden para manter filtros após submit -->
+                <input type="hidden" name="filtro_unidade" value="{{ filtros.unidade }}">
+                <input type="hidden" name="filtro_categoria" value="{{ filtros.categoria }}">
+                <input type="hidden" name="filtro_cpf" value="{{ filtros.cpf }}">
+                <input type="hidden" name="filtro_nome" value="{{ filtros.nome }}">
+                <input type="hidden" name="tipo_regulacao_hidden" value="{{ tipo }}">
+                
                 <div class="flex gap-1">
                   <!-- Aprovar -->
                   <form method="post" action="{{ url_for('regulator.aprovar', pedido_id=pedido.id) }}" class="inline">
@@ -196,6 +210,9 @@
       </svg>
       <h3 class="text-lg font-semibold mb-2">Tudo em dia!</h3>
       <p>Nenhum pedido {{ 'municipal' if tipo == 'municipal' else 'estadual' }} aguardando análise.</p>
+      {% if filtros.unidade or filtros.categoria or filtros.cpf or filtros.nome %}
+        <p class="text-sm mt-2">Tente remover alguns filtros para ver mais resultados.</p>
+      {% endif %}
     </div>
   {% endif %}
 </div>
@@ -208,6 +225,12 @@
     </div>
     <form id="form-devolver" method="post">
       <input type="hidden" name="tipo_regulacao" id="tipo-regulacao-devolver">
+      <!-- Campos hidden para manter filtros -->
+      <input type="hidden" name="filtro_unidade" value="{{ filtros.unidade }}">
+      <input type="hidden" name="filtro_categoria" value="{{ filtros.categoria }}">
+      <input type="hidden" name="filtro_cpf" value="{{ filtros.cpf }}">
+      <input type="hidden" name="filtro_nome" value="{{ filtros.nome }}">
+      
       <div class="p-4 space-y-3">
         <label class="text-sm font-medium text-slate-600">Motivo da devolução</label>
         <textarea name="motivo" rows="3" required class="w-full border border-slate-300 rounded focus:border-sky-500 focus:ring-2 focus:ring-sky-200 text-sm" placeholder="Descreva o motivo da devolução..."></textarea>
@@ -231,6 +254,13 @@
       <h3 class="text-lg font-semibold text-slate-700">Cancelar Pedido #<span id="pedido-cancelar-id"></span></h3>
     </div>
     <form id="form-cancelar" method="post">
+      <input type="hidden" name="tipo_regulacao" value="{{ tipo }}">
+      <!-- Campos hidden para manter filtros -->
+      <input type="hidden" name="filtro_unidade" value="{{ filtros.unidade }}">
+      <input type="hidden" name="filtro_categoria" value="{{ filtros.categoria }}">
+      <input type="hidden" name="filtro_cpf" value="{{ filtros.cpf }}">
+      <input type="hidden" name="filtro_nome" value="{{ filtros.nome }}">
+      
       <div class="p-4 space-y-3">
         <label class="text-sm font-medium text-slate-600">Motivo do cancelamento</label>
         <textarea name="motivo" rows="3" required class="w-full border border-slate-300 rounded focus:border-sky-500 focus:ring-2 focus:ring-sky-200 text-sm" placeholder="Descreva o motivo do cancelamento..."></textarea>
