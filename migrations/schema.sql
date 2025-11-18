@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS pedidos (
     usuario_atualizacao INT NOT NULL,
     motivo_cancelamento TEXT,
     motivo_devolucao TEXT,
+    motivos_devolucao_checkboxes JSON NULL,
     pendente_recepcao TINYINT(1) DEFAULT 0,
     anexos JSON NULL,
     data_exame DATE,

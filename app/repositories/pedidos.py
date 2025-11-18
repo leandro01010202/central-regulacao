@@ -101,6 +101,94 @@ def listar_por_unidade(unidade_id: int) -> List[dict]:
 
 
 # ==========================================================
+# 📋 Listar pedidos devolvidos por unidade
+# ==========================================================
+def listar_devolvidos_por_unidade(unidade_id: int) -> List[dict]:
+    query = """
+        SELECT p.id,
+               p.status,
+               p.tipo_regulacao,
+               p.prioridade,
+               p.tipo_solicitacao,
+               p.data_solicitacao,
+               p.motivo_devolucao,
+               p.motivos_devolucao_checkboxes,
+               pa.nome AS paciente_nome,
+               pa.cpf AS paciente_cpf,
+               COALESCE(e.nome, c.especialidade) AS nome_solicitacao,
+               un.nome AS unidade_nome
+        FROM pedidos p
+        JOIN pacientes pa ON pa.id = p.paciente_id
+        LEFT JOIN exames e ON e.id = p.exame_id
+        LEFT JOIN consultas c ON c.id = p.consulta_id
+        JOIN unidades_saude un ON un.id = p.unidade_id
+        WHERE p.unidade_id = %s AND p.status = %s
+        ORDER BY p.data_atualizacao DESC
+    """
+    with mysql.get_cursor(dictionary=True) as (_, cursor):
+        cursor.execute(query, (unidade_id, "devolvido_medico_para_recepcao"))
+        return cursor.fetchall()
+
+
+# ==========================================================
+# 📋 Listar todos os pedidos (para admin)
+# ==========================================================
+def listar_todos() -> List[dict]:
+    query = """
+        SELECT p.id,
+               p.status,
+               p.tipo_regulacao,
+               p.prioridade,
+               p.tipo_solicitacao,
+               p.data_solicitacao,
+               p.pendente_recepcao,
+               pa.nome AS paciente_nome,
+               pa.cpf AS paciente_cpf,
+               COALESCE(e.nome, c.especialidade) AS nome_solicitacao,
+               un.nome AS unidade_nome
+        FROM pedidos p
+        JOIN pacientes pa ON pa.id = p.paciente_id
+        LEFT JOIN exames e ON e.id = p.exame_id
+        LEFT JOIN consultas c ON c.id = p.consulta_id
+        JOIN unidades_saude un ON un.id = p.unidade_id
+        ORDER BY p.data_atualizacao DESC
+    """
+    with mysql.get_cursor(dictionary=True) as (_, cursor):
+        cursor.execute(query)
+        return cursor.fetchall()
+
+
+# ==========================================================
+# 📋 Listar todos os pedidos devolvidos (para admin)
+# ==========================================================
+def listar_todos_devolvidos() -> List[dict]:
+    query = """
+        SELECT p.id,
+               p.status,
+               p.tipo_regulacao,
+               p.prioridade,
+               p.tipo_solicitacao,
+               p.data_solicitacao,
+               p.motivo_devolucao,
+               p.motivos_devolucao_checkboxes,
+               pa.nome AS paciente_nome,
+               pa.cpf AS paciente_cpf,
+               COALESCE(e.nome, c.especialidade) AS nome_solicitacao,
+               un.nome AS unidade_nome
+        FROM pedidos p
+        JOIN pacientes pa ON pa.id = p.paciente_id
+        LEFT JOIN exames e ON e.id = p.exame_id
+        LEFT JOIN consultas c ON c.id = p.consulta_id
+        JOIN unidades_saude un ON un.id = p.unidade_id
+        WHERE p.status = %s
+        ORDER BY p.data_atualizacao DESC
+    """
+    with mysql.get_cursor(dictionary=True) as (_, cursor):
+        cursor.execute(query, ("devolvido_medico_para_recepcao",))
+        return cursor.fetchall()
+
+
+# ==========================================================
 # 📦 Listar para Malote - ATUALIZADO
 # ==========================================================
 def listar_para_malote() -> List[dict]:
@@ -261,6 +349,38 @@ def obter_historico(pedido_id: int) -> list[dict]:
     """
     with mysql.get_cursor(dictionary=True) as (_, cursor):
         cursor.execute(query, (pedido_id,))
+        return cursor.fetchall()
+
+
+# ==========================================================
+# 🔍 Listar por Status
+# ==========================================================
+def listar_por_status(status: str) -> List[dict]:
+    query = """
+        SELECT p.id,
+               p.status,
+               p.tipo_regulacao,
+               p.prioridade,
+               p.tipo_solicitacao,
+               p.data_solicitacao,
+               p.data_atualizacao,
+               p.data_exame,
+               p.horario_exame,
+               p.local_exame,
+               pa.nome AS paciente_nome,
+               pa.cpf AS paciente_cpf,
+               COALESCE(e.nome, c.especialidade) AS nome_solicitacao,
+               un.nome AS unidade_nome
+        FROM pedidos p
+        JOIN pacientes pa ON pa.id = p.paciente_id
+        LEFT JOIN exames e ON e.id = p.exame_id
+        LEFT JOIN consultas c ON c.id = p.consulta_id
+        JOIN unidades_saude un ON un.id = p.unidade_id
+        WHERE p.status = %s
+        ORDER BY p.data_solicitacao DESC
+    """
+    with mysql.get_cursor(dictionary=True) as (_, cursor):
+        cursor.execute(query, (status,))
         return cursor.fetchall()
 
 

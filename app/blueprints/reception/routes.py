@@ -126,13 +126,30 @@ def _determinar_unidade_id(unidades: list[dict]) -> Optional[int]:
 @login_required
 @roles_required("recepcao", "admin")
 def listar_pedidos():
-    if current_user.unidade_id is None and current_user.role != "admin":
+    unidade_id = current_user.unidade_id
+    
+    # Se admin (sem unidade vinculada), buscar de TODAS as unidades
+    if current_user.role == "admin" and unidade_id is None:
+        pedidos = pedidos_repo.listar_todos()
+        pedidos_devolvidos = pedidos_repo.listar_todos_devolvidos()
+    elif unidade_id:
+        pedidos = pedidos_repo.listar_por_unidade(unidade_id)
+        pedidos_devolvidos = pedidos_repo.listar_devolvidos_por_unidade(unidade_id)
+    else:
         flash("Usuário de recepção sem unidade vinculada. Contate o administrador.", "danger")
         return redirect(url_for("dashboards.home"))
-
-    unidade_id = current_user.unidade_id
-    pedidos = pedidos_repo.listar_por_unidade(unidade_id) if unidade_id else []
-    return render_template("reception/list.html", pedidos=pedidos)
+    
+    print(f"DEBUG: unidade_id = {unidade_id}, role = {current_user.role}")
+    print(f"DEBUG: pedidos encontrados = {len(pedidos)}")
+    for p in pedidos[:5]:
+        print(f"  - ID: {p.get('id')}, Status: {p.get('status')}")
+    print(f"DEBUG: pedidos_devolvidos encontrados = {len(pedidos_devolvidos)}")
+    
+    return render_template(
+        "reception/list.html", 
+        pedidos=pedidos,
+        pedidos_devolvidos=pedidos_devolvidos
+    )
 
 
 @reception_bp.route("/pedidos/novo", methods=["GET", "POST"])
@@ -479,4 +496,55 @@ def acompanhar_pedido():
         "reception/acompanhamento.html", 
         pedidos=pedidos_paciente,
         cpf_consulta=cpf_consulta
+    )
+
+
+@reception_bp.route("/regulacao", methods=["GET"])
+@login_required
+@roles_required("recepcao", "admin")
+def regulacao():
+    """Lista pedidos com status 'agendamento_confirmado' para recepção de regulação"""
+    # Filtros
+    filtros = {}
+    cpf = request.args.get("cpf", "").strip()
+    nome = request.args.get("nome", "").strip()
+    unidade = request.args.get("unidade", "").strip()
+    categoria = request.args.get("categoria", "").strip()
+    
+    # Buscar todos os pedidos com status agendamento_confirmado
+    pedidos = pedidos_repo.listar_por_status(StatusPedido.AGENDAMENTO_CONFIRMADO.value)
+    
+    if not pedidos:
+        pedidos = []
+    
+    # Aplicar filtros
+    if cpf:
+        cpf_clean = cpf.replace(".", "").replace("-", "")
+        pedidos = [p for p in pedidos if (p.get("paciente_cpf") or "").replace(".", "").replace("-", "") == cpf_clean]
+        filtros["cpf"] = cpf
+    
+    if nome:
+        pedidos = [p for p in pedidos if nome.lower() in (p.get("paciente_nome") or "").lower()]
+        filtros["nome"] = nome
+    
+    if unidade:
+        pedidos = [p for p in pedidos if p.get("unidade_nome") == unidade]
+        filtros["unidade"] = unidade
+    
+    if categoria:
+        # categoria pode ser 'exame' ou 'consulta'
+        if categoria == "exame":
+            pedidos = [p for p in pedidos if p.get("tipo_solicitacao") == "exame"]
+        elif categoria == "consulta":
+            pedidos = [p for p in pedidos if p.get("tipo_solicitacao") == "consulta"]
+        filtros["categoria"] = categoria
+    
+    # Coletar unidades únicas para dropdown
+    unidades_disponiveis = sorted(set(p.get("unidade_nome") for p in pedidos if p.get("unidade_nome")))
+    
+    return render_template(
+        "reception/regulacao.html",
+        pedidos=pedidos,
+        filtros=filtros,
+        unidades_disponiveis=unidades_disponiveis,
     )

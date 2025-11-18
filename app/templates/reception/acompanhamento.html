@@ -35,33 +35,7 @@
     </form>
   </div>
 
-  <!-- FAQ: Perguntas Frequentes -->
-  <div class="bg-white rounded-lg shadow-sm p-6">
-    <h2 class="text-lg font-semibold text-slate-700 mb-3">Perguntas Frequentes (FAQ)</h2>
-    <div id="faq-list" class="space-y-2">
-      <details class="bg-slate-50 p-3 rounded">
-        <summary class="font-medium cursor-pointer">Como acompanho meu pedido?</summary>
-        <div class="mt-2 text-sm text-slate-600">Digite seu CPF no campo acima e clique em <strong>Consultar</strong>. Serão exibidos todos os pedidos vinculados ao CPF informado.</div>
-      </details>
 
-      <details class="bg-slate-50 p-3 rounded">
-        <summary class="font-medium cursor-pointer">O que significam as prioridades P1 e P2?</summary>
-        <div class="mt-2 text-sm text-slate-600">P1 é prioridade alta (casos mais urgentes). P2 é prioridade média/baixa.</div>
-      </details>
-    </div>
-
-    <details class="mt-4">
-      <summary class="text-sm text-slate-500 cursor-pointer">Adicionar uma pergunta temporária (não salva)</summary>
-      <div class="mt-2 grid grid-cols-1 gap-2">
-        <input id="faq-question" placeholder="Pergunta" class="w-full rounded border-slate-300 p-2 text-sm">
-        <textarea id="faq-answer" rows="3" placeholder="Resposta" class="w-full rounded border-slate-300 p-2 text-sm"></textarea>
-        <div class="flex gap-2">
-          <button type="button" id="faq-add-btn" class="btn-primary text-sm">Adicionar</button>
-          <button type="button" id="faq-clear-btn" class="inline-flex items-center px-3 py-2 rounded border border-slate-200 text-sm text-slate-600">Limpar</button>
-        </div>
-      </div>
-    </details>
-  </div>
 
   <!-- Resultados da consulta -->
   {% if pedidos %}
@@ -198,7 +172,37 @@
       </p>
     </div>
   {% endif %}
+
+    <!-- FAQ: Perguntas Frequentes -->
+  <div class="bg-white rounded-lg shadow-sm p-6">
+    <h2 class="text-lg font-semibold text-slate-700 mb-3">Perguntas Frequentes (FAQ)</h2>
+    <div id="faq-list" class="space-y-2">
+      <details class="bg-slate-50 p-3 rounded">
+        <summary class="font-medium cursor-pointer">Como acompanho meu pedido?</summary>
+        <div class="mt-2 text-sm text-slate-600">Digite seu CPF no campo acima e clique em <strong>Consultar</strong>. Serão exibidos todos os pedidos vinculados ao CPF informado.</div>
+      </details>
+
+      <details class="bg-slate-50 p-3 rounded">
+        <summary class="font-medium cursor-pointer">O que significam as prioridades P1 e P2?</summary>
+        <div class="mt-2 text-sm text-slate-600">P1 é prioridade alta (casos mais urgentes). P2 é prioridade média/baixa.</div>
+      </details>
+    </div>
+
+    <details class="mt-4">
+      <summary class="text-sm text-slate-500 cursor-pointer">Adicionar uma pergunta temporária (não salva)</summary>
+      <div class="mt-2 grid grid-cols-1 gap-2">
+        <input id="faq-question" placeholder="Pergunta" class="w-full rounded border-slate-300 p-2 text-sm">
+        <textarea id="faq-answer" rows="3" placeholder="Resposta" class="w-full rounded border-slate-300 p-2 text-sm"></textarea>
+        <div class="flex gap-2">
+          <button type="button" id="faq-add-btn" class="btn-primary text-sm">Adicionar</button>
+          <button type="button" id="faq-clear-btn" class="inline-flex items-center px-3 py-2 rounded border border-slate-200 text-sm text-slate-600">Limpar</button>
+        </div>
+      </div>
+    </details>
+  </div>
+  
 </div>
+
 
 <script>
 // Máscara para CPF
