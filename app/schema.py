@@ -26,6 +26,7 @@ SCHEMA_STATEMENTS = [
             'agendador_estadual'
         ) NOT NULL,
         unidade_id INT NULL,
+        tipo_agendador ENUM('exame', 'consulta') NULL,
         ativo TINYINT(1) DEFAULT 1,
         is_online BOOLEAN DEFAULT FALSE,
         last_seen DATETIME DEFAULT CURRENT_TIMESTAMP,

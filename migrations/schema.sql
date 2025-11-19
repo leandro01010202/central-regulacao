@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
         'agendador_estadual'
     ) NOT NULL,
     unidade_id INT NULL,
+    tipo_agendador ENUM('exame', 'consulta') NULL,
     ativo TINYINT(1) DEFAULT 1,
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
     atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

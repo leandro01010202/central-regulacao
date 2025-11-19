@@ -102,6 +102,7 @@
 <div class="border-b border-gray-200 mb-4">
   <ul class="flex flex-wrap -mb-px text-sm font-medium text-center">
 
+    {% if not tipo_agendador or tipo_agendador == 'exame' %}
     <li class="me-2">
       <button
         class="inline-block p-4 border-b-2 rounded-t-lg active-tab"
@@ -110,16 +111,20 @@
         Exames
       </button>
     </li>
+    {% endif %}
 
+    {% if not tipo_agendador or tipo_agendador == 'consulta' %}
     <li class="me-2">
       <button
-        class="inline-block p-4 border-b-2 rounded-t-lg text-gray-500 hover:text-gray-600"
+        class="inline-block p-4 border-b-2 rounded-t-lg text-gray-500 hover:text-gray-600 {% if tipo_agendador == 'consulta' %}active-tab{% endif %}"
         id="tab-consultas"
         data-tab-target="consultas">
         Consultas
       </button>
     </li>
+    {% endif %}
 
+    {% if not tipo_agendador or tipo_agendador == 'exame' %}
     <li class="me-2">
       <button
         class="inline-block p-4 border-b-2 rounded-t-lg text-gray-500 hover:text-gray-600"
@@ -128,6 +133,7 @@
         Tabela
       </button>
     </li>
+    {% endif %}
 
   </ul>
 </div>
@@ -136,17 +142,22 @@
 <div id="tab-content">
 
   <!-- EXAMES -->
-  <div id="tab-exames-content" class="tab-pane block">
+  {% if not tipo_agendador or tipo_agendador == 'exame' %}
+  <div id="tab-exames-content" class="tab-pane {% if tipo_agendador == 'consulta' %}hidden{% else %}block{% endif %}">
     {% set pedidos = exames %}
     {% include "scheduling/partials/lista.html" with context %}
   </div>
+  {% endif %}
 
   <!-- CONSULTAS -->
-  <div id="tab-consultas-content" class="tab-pane hidden">
+  {% if not tipo_agendador or tipo_agendador == 'consulta' %}
+  <div id="tab-consultas-content" class="tab-pane {% if tipo_agendador == 'exame' %}hidden{% else %}block{% endif %}">
     {% include "scheduling/partials/lista_consultas.html" with context %}
   </div>
+  {% endif %}
 
   <!-- TABELA -->
+  {% if not tipo_agendador or tipo_agendador == 'exame' %}
   <div id="tab-tabela-content" class="tab-pane hidden p-4">
     <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-x-auto">
       {% if dados %}
@@ -327,5 +338,9 @@ document.addEventListener('DOMContentLoaded', () => {
     border-color: #2563eb;
   }
 </style>
+  </div>
+  {% endif %}
 
 {% endblock %}
+
+

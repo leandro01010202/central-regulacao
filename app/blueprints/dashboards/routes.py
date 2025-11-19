@@ -139,10 +139,13 @@ def home():
     # Para perfis específicos, redirecionar direto
     if role == "recepcao":
         return redirect(url_for("reception.listar_pedidos"))
+    if role == "recepcao_regulacao":
+        return redirect(url_for("reception.regulacao"))
     if role == "agendador_municipal":
         return redirect(url_for("scheduling.lista", tipo="municipal"))
     if role == "agendador_estadual":
         return redirect(url_for("scheduling.lista", tipo="estadual"))
+        
     
     # Para admin, malote e médico regulador, mostrar dashboard
     stats_gerais = _get_dashboard_stats()

@@ -4,6 +4,7 @@ central-regulacao/
 │  ├─ extensions.py
 │  ├─ database.py
 │  ├─ config_helpers.py
+│  ├─ schema.py
 │  ├─ models/
 │  │  └─ usuario.py
 │  ├─ domain/
@@ -16,12 +17,17 @@ central-regulacao/
 │  │  ├─ pacientes.py
 │  │  ├─ unidades.py
 │  │  ├─ exames.py
-│  │  └─ pedidos.py
+│  │  ├─ consultas.py
+│  │  ├─ pedidos.py
+│  │  └─ chat.py
 │  ├─ services/
 │  │  ├─ pedidos_service.py
 │  │  └─ agendamento_service.py
 │  ├─ blueprints/
 │  │  ├─ auth/
+│  │  │  ├─ __init__.py
+│  │  │  └─ routes.py
+│  │  ├─ admin/
 │  │  │  ├─ __init__.py
 │  │  │  └─ routes.py
 │  │  ├─ dashboards/
@@ -36,32 +42,82 @@ central-regulacao/
 │  │  ├─ regulator/
 │  │  │  ├─ __init__.py
 │  │  │  └─ routes.py
-│  │  └─ scheduling/
+│  │  ├─ scheduling/
+│  │  │  ├─ __init__.py
+│  │  │  └─ routes.py
+│  │  └─ chat/
 │  │     ├─ __init__.py
-│  │     └─ routes.py
+│  │     ├─ routes.py
+│  │     ├─ forms.py
+│  │     ├─ socket_events.py
+│  │     └─ utils.py
 │  ├─ templates/
 │  │  ├─ base.html
+│  │  ├─ templates.zip
 │  │  ├─ components/
 │  │  │  └─ status_badge.html
-│  │  ├─ auth/login.html
-│  │  ├─ dashboards/home.html
+│  │  ├─ auth/
+│  │  │  └─ login.html
+│  │  ├─ admin/
+│  │  │  ├─ consultas/
+│  │  │  │  ├─ list.html
+│  │  │  │  └─ form.html
+│  │  │  ├─ exames/
+│  │  │  │  ├─ list.html
+│  │  │  │  └─ form.html
+│  │  │  ├─ unidades/
+│  │  │  │  ├─ list.html
+│  │  │  │  └─ form.html
+│  │  │  └─ usuarios/
+│  │  │     ├─ list.html
+│  │  │     └─ form.html
+│  │  ├─ chat/
+│  │  │  └─ chat.html
+│  │  ├─ dashboards/
+│  │  │  ├─ home.html
+│  │  │  └─ relatorios.html
 │  │  ├─ reception/
 │  │  │  ├─ list.html
 │  │  │  ├─ form.html
-│  │  │  └─ devolucao.html
-│  │  ├─ malote/list.html
-│  │  ├─ regulator/painel.html
+│  │  │  ├─ paciente_form.html
+│  │  │  ├─ devolucao.html
+│  │  │  ├─ detalhe.html
+│  │  │  ├─ acompanhamento.html
+│  │  │  ├─ regulacao.html
+│  │  │  └─ folhaImpressao.html
+│  │  ├─ malote/
+│  │  │  └─ list.html
+│  │  ├─ regulator/
+│  │  │  └─ painel.html
 │  │  └─ scheduling/
 │  │     ├─ municipal.html
-│  │     └─ estadual.html
+│  │     ├─ estadual.html
+│  │     └─ partials/
+│  │        ├─ lista.html
+│  │        └─ lista_consultas.html
 │  └─ static/
-│     ├─ css/custom.css
-│     └─ js/main.js
+│     ├─ css/
+│     │  ├─ custom.css
+│     │  └─ chat.css
+│     ├─ js/
+│     │  ├─ main.js
+│     │  └─ chat.js
+│     └─ uploads/
+│        ├─ FO349_editavel_20251112_212112.pdf
+│        ├─ Prompt_20251113_140537.txt
+│        ├─ dia_sorte_20251114_223849.txt
+│        ├─ microlins2_20251112_212556.png
+│        └─ relatorioFinal_Labugamers_20251113_140520.pdf
 ├─ migrations/
 │  └─ schema.sql
 ├─ scripts/
 │  └─ create_user.py
 ├─ requirements.txt
+├─ .env
 ├─ .env.example
+├─ .gitignore
+├─ .gitattributes
 ├─ config.py
-└─ run.py
+├─ estrutura.txt
+├─ run.py
+└─ TESTE.PY

@@ -11,6 +11,7 @@ class Usuario(UserMixin):
     unidade_id: int | None
     unidade_nome: str | None
     ativo: bool
+    tipo_agendador: str | None = None
 
     @property
     def is_active(self) -> bool:  # Flask-Login já usa esta propriedade
@@ -26,6 +27,7 @@ class Usuario(UserMixin):
             unidade_id=row.get("unidade_id"),
             unidade_nome=row.get("unidade_nome"),
             ativo=row.get("ativo", 1) == 1,
+            tipo_agendador=row.get("tipo_agendador"),
         )
 
     def get_id(self) -> str:

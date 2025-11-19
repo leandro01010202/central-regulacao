@@ -18,6 +18,7 @@
       {% set usuario_cpf = form_data.get('cpf', usuario['cpf'] if usuario else '') %}
       {% set role_atual = form_data.get('role', usuario['role'] if usuario else '') %}
       {% set unidade_val = form_data.get('unidade_id', usuario['unidade_id'] if usuario else '') %}
+      {% set tipo_agendador_val = form_data.get('tipo_agendador', usuario['tipo_agendador'] if usuario else '') %}
       {% set ativo_val = form_data.get('ativo', '1' if (not usuario or usuario['ativo']) else '0') %}
 
       <div class="grid gap-5 md:grid-cols-2">
@@ -90,7 +91,25 @@
             {% endfor %}
           </select>
           <p class="text-xs text-slate-500">
-            Obrigatório para perfis diferentes de “Administrador”.
+            Obrigatório para perfis diferentes de "Administrador".
+          </p>
+        </div>
+
+        <div class="space-y-2" id="tipo-agendador-container" style="display: none;">
+          <label for="tipo_agendador" class="block text-sm font-medium text-slate-700">
+            Tipo de Agendamento <span class="text-rose-600">*</span>
+          </label>
+          <select
+            id="tipo_agendador"
+            name="tipo_agendador"
+            class="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-800 shadow-sm focus:border-sky-500 focus:ring-sky-500"
+          >
+            <option value="">— Selecione —</option>
+            <option value="exame" {% if tipo_agendador_val == 'exame' %}selected{% endif %}>Exame</option>
+            <option value="consulta" {% if tipo_agendador_val == 'consulta' %}selected{% endif %}>Consulta</option>
+          </select>
+          <p class="text-xs text-slate-500">
+            Selecione o tipo de agendamento que este usuário irá gerenciar.
           </p>
         </div>
 
@@ -142,4 +161,29 @@
     </footer>
   </div>
 </section>
+
+<script>
+// Mostrar/ocultar campo tipo_agendador baseado no role selecionado
+document.addEventListener('DOMContentLoaded', function() {
+  const roleSelect = document.getElementById('role');
+  const tipoAgendadorContainer = document.getElementById('tipo-agendador-container');
+  const tipoAgendadorSelect = document.getElementById('tipo_agendador');
+
+  function toggleTipoAgendador() {
+    const role = roleSelect.value;
+    if (role === 'agendador_municipal' || role === 'agendador_estadual') {
+      tipoAgendadorContainer.style.display = 'block';
+      tipoAgendadorSelect.required = true;
+    } else {
+      tipoAgendadorContainer.style.display = 'none';
+      tipoAgendadorSelect.required = false;
+      tipoAgendadorSelect.value = '';
+    }
+  }
+
+  roleSelect.addEventListener('change', toggleTipoAgendador);
+  // Chamar ao carregar a página
+  toggleTipoAgendador();
+});
+</script>
 {% endblock %}

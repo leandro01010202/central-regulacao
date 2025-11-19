@@ -140,6 +140,7 @@ def lista(tipo: str):
         prioridade_selecionada=prioridade,
         nome_selecionado=nome,
         cpf_selecionado=cpf,
+        tipo_agendador=current_user.tipo_agendador,
     )
 
 

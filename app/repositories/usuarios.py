@@ -71,16 +71,17 @@ def criar_usuario(
     senha_hash: str,
     role: str,
     unidade_id: Optional[int] = None,
+    tipo_agendador: Optional[str] = None,
     ativo: int = 1,
 ) -> int:
     query = """
-        INSERT INTO usuarios (nome, cpf, senha_hash, role, unidade_id, ativo)
-        VALUES (%s, %s, %s, %s, %s, %s)
+        INSERT INTO usuarios (nome, cpf, senha_hash, role, unidade_id, tipo_agendador, ativo)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
     """
     cpf_sanitized = _sanitizar_cpf(cpf)
 
     with mysql.get_cursor() as (_, cursor):
-        cursor.execute(query, (nome, cpf_sanitized, senha_hash, role, unidade_id, ativo))
+        cursor.execute(query, (nome, cpf_sanitized, senha_hash, role, unidade_id, tipo_agendador, ativo))
         return cursor.lastrowid
 
 

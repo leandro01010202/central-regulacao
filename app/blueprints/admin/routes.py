@@ -150,6 +150,7 @@ def criar_usuario():
         cpf = _normalizar_cpf(request.form.get("cpf"))
         role = (request.form.get("role") or "").strip()
         unidade_id_bruto = (request.form.get("unidade_id") or "").strip()
+        tipo_agendador = (request.form.get("tipo_agendador") or "").strip() or None
         senha = request.form.get("senha") or ""
         ativo = request.form.get("ativo") == "1"
 
@@ -161,6 +162,11 @@ def criar_usuario():
             erros.append("Informe um CPF válido (11 dígitos).")
         if role not in ROLES_DISPONIVEIS:
             erros.append("Selecione um perfil de acesso válido.")
+
+        # Se é agendador, validar tipo_agendador
+        if role in ("agendador_municipal", "agendador_estadual"):
+            if not tipo_agendador or tipo_agendador not in ("exame", "consulta"):
+                erros.append("Selecione o tipo de agendamento para agendadores.")
 
         # VERIFICAÇÃO IMPORTANTE: Apenas "recepcao" exige unidade, "recepcao_regulacao" NÃO
         exige_unidade = role in ROLES_EXIGEM_UNIDADE
@@ -205,6 +211,7 @@ def criar_usuario():
             senha_hash=senha_hash,
             role=role,
             unidade_id=unidade_id,
+            tipo_agendador=tipo_agendador,
             ativo=1 if ativo else 0,
         )
 
@@ -237,6 +244,7 @@ def editar_usuario(usuario_id: int):
         nome = (request.form.get("nome") or "").strip()
         role = (request.form.get("role") or "").strip()
         unidade_id_bruto = (request.form.get("unidade_id") or "").strip()
+        tipo_agendador = (request.form.get("tipo_agendador") or "").strip() or None
         novo_cpf = _normalizar_cpf(request.form.get("cpf"))
         senha = request.form.get("senha") or ""
         ativo = request.form.get("ativo") == "1"
@@ -249,6 +257,11 @@ def editar_usuario(usuario_id: int):
             erros.append("Informe um CPF válido (11 dígitos).")
         if role not in ROLES_DISPONIVEIS:
             erros.append("Selecione um perfil de acesso válido.")
+
+        # Se é agendador, validar tipo_agendador
+        if role in ("agendador_municipal", "agendador_estadual"):
+            if not tipo_agendador or tipo_agendador not in ("exame", "consulta"):
+                erros.append("Selecione o tipo de agendamento para agendadores.")
 
         # VERIFICAÇÃO IMPORTANTE: Apenas "recepcao" exige unidade, "recepcao_regulacao" NÃO
         exige_unidade = role in ROLES_EXIGEM_UNIDADE
@@ -296,6 +309,7 @@ def editar_usuario(usuario_id: int):
             "cpf": novo_cpf,
             "role": role,
             "unidade_id": unidade_id,
+            "tipo_agendador": tipo_agendador,
             "ativo": 1 if ativo else 0,
             "atualizado_em": datetime.utcnow(),
         }
@@ -313,6 +327,7 @@ def editar_usuario(usuario_id: int):
         "cpf": usuario["cpf"],
         "role": usuario["role"],
         "unidade_id": usuario["unidade_id"] or "",
+        "tipo_agendador": usuario.get("tipo_agendador") or "",
         "ativo": "1" if usuario.get("ativo") else "0",
     }
 
