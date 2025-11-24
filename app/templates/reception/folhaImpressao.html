@@ -1,77 +1,657 @@
 {% extends "base.html" %}
-{% block title %}Folha de Impressão - Pedido{% endblock %}
+{% block title %}Folha de Impressão - Pedido #{{ pedido.id }}{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto bg-white rounded-lg shadow p-6">
-  <div class="flex justify-between items-center mb-4">
+<div class="max-w-full mx-auto bg-white rounded-lg shadow p-6 print-container">
+  <!-- Cabeçalho - visível apenas na tela -->
+  <div class="flex justify-between items-center mb-4 no-print">
     <h1 class="text-xl font-semibold">Folha de Impressão - Pedido #{{ pedido.id }}</h1>
     <div class="flex gap-2">
-      <a href="{{ url_for('reception.regulacao') }}" class="inline-flex items-center px-3 py-2 rounded border border-slate-200 text-sm text-slate-700">← Voltar à Recepção Regulação</a>
-      <button onclick="window.print()" class="btn-primary">Imprimir</button>
+      <a href="{{ url_for('reception.regulacao') }}" class="btn-outline">← Voltar</a>
+      <button onclick="imprimirDocumento()" class="btn-primary">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H3a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6c1.1 0 2-.9 2-2V9a2 2 0 00-2-2H7a2 2 0 00-2 2v10c0 1.1.9 2 2 2z"/>
+        </svg>
+        Imprimir Duas Vias
+      </button>
     </div>
   </div>
 
-  <section class="mb-4">
-    <h2 class="font-semibold text-slate-700 mb-2">Dados do Paciente</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-      <div><span class="text-slate-600">Nome:</span> <span class="font-medium">{{ paciente.nome or '-' }}</span></div>
-      <div><span class="text-slate-600">CPF:</span> <span class="font-medium">{{ paciente.cpf or '-' }}</span></div>
-      <div><span class="text-slate-600">Data de Nascimento:</span> <span class="font-medium">{{ paciente.data_nascimento or '-' }}</span></div>
-      <div><span class="text-slate-600">Cartão SUS:</span> <span class="font-medium">{{ paciente.cartao_sus or '-' }}</span></div>
-      <div class="md:col-span-2"><span class="text-slate-600">Endereço:</span> <span class="font-medium">{{ paciente.endereco or '-' }}</span></div>
-      <div><span class="text-slate-600">Telefone 1:</span> <span class="font-medium">{{ paciente.telefone_principal or '-' }}</span></div>
-      <div><span class="text-slate-600">Telefone 2:</span> <span class="font-medium">{{ paciente.telefone_secundario or '-' }}</span></div>
-      <div class="md:col-span-2"><span class="text-slate-600">Email:</span> <span class="font-medium">{{ paciente.email or '-' }}</span></div>
-    </div>
-  </section>
+  <!-- Conteúdo para impressão -->
+  <div class="print-content">
+    <div class="container-duas-vias">
+      
+      <!-- ========== 1ª VIA - PACIENTE (ESQUERDA) ========== -->
+      <div class="via-coluna">
+        <div class="marcacao-via">1ª VIA - PACIENTE</div>
+        
+        <!-- Cabeçalho -->
+        <div class="cabecalho-via">
+          <h1>SECRETARIA MUNICIPAL DE SAÚDE</h1>
+          <h2>Central de Regulação</h2>
+          <div class="numero-pedido">FOLHA DE AGENDAMENTO - PEDIDO Nº {{ pedido.id }}</div>
+        </div>
 
-  <section class="mb-4">
-    <h2 class="font-semibold text-slate-700 mb-2">Dados do Pedido</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-      <div><span class="text-slate-600">Pedido ID:</span> <span class="font-medium">{{ pedido.id }}</span></div>
-      <div><span class="text-slate-600">Solicitado em:</span> <span class="font-medium">{{ pedido.data_solicitacao.strftime('%d/%m/%Y %H:%M') if pedido.data_solicitacao else '-' }}</span></div>
-      <div><span class="text-slate-600">Unidade:</span> <span class="font-medium">{{ unidade.nome if unidade else (pedido.unidade_nome or '-') }}</span></div>
-      <div><span class="text-slate-600">Tipo:</span> <span class="font-medium">{{ pedido.tipo_solicitacao or '-' }}</span></div>
-      <div><span class="text-slate-600">Solicitação:</span> <span class="font-medium">{{ pedido.nome_solicitacao or (exame.nome if exame else (consulta.nome if consulta else '-')) }}</span></div>
-      <div><span class="text-slate-600">Prioridade:</span> <span class="font-medium">{{ pedido.prioridade or '-' }}</span></div>
-      <div><span class="text-slate-600">Data do Exame:</span> <span class="font-medium">{{ pedido.data_exame.strftime('%d/%m/%Y') if pedido.data_exame else '-' }}</span></div>
-      <div><span class="text-slate-600">Horário:</span> <span class="font-medium">{{ pedido.horario_exame.strftime('%H:%M') if pedido.horario_exame else '-' }}</span></div>
-      <div class="md:col-span-2"><span class="text-slate-600">Observações:</span>
-        <div class="whitespace-pre-wrap mt-1 text-sm text-slate-800">{{ pedido.observacoes or '-' }}</div>
+        <div class="divisor-horizontal"></div>
+
+        <!-- DADOS DO PACIENTE -->
+        <div class="secao-titulo">DADOS DO PACIENTE</div>
+        <table class="tabela-dados">
+          <tr>
+            <td class="label">Nome:</td>
+            <td class="valor">{{ paciente.nome or '' }}</td>
+          </tr>
+          <tr>
+            <td class="label">CPF:</td>
+            <td class="valor">{{ paciente.cpf or '' }}</td>
+          </tr>
+          <tr>
+            <td class="label">Data de Nascimento:</td>
+            <td class="valor">{{ paciente.data_nascimento.strftime('%d/%m/%Y') if paciente.data_nascimento else '' }}</td>
+          </tr>
+          <tr>
+            <td class="label">Cartão SUS:</td>
+            <td class="valor">{{ paciente.cartao_sus or '' }}</td>
+          </tr>
+          <tr>
+            <td class="label">Telefone:</td>
+            <td class="valor">{{ paciente.telefone_principal or '' }}</td>
+          </tr>
+        </table>
+
+        <!-- DADOS DA SOLICITAÇÃO -->
+        <div class="secao-titulo">DADOS DA SOLICITAÇÃO</div>
+        <table class="tabela-dados">
+          <tr>
+            <td class="label">Unidade de Saúde:</td>
+            <td class="valor">{{ unidade.nome if unidade else (pedido.unidade_nome or '') }}</td>
+          </tr>
+          <tr>
+            <td class="label">Tipo de Solicitação:</td>
+            <td class="valor">{% if pedido.tipo_solicitacao == 'exame' %}EXAME{% else %}CONSULTA{% endif %}</td>
+          </tr>
+          <tr>
+            <td class="label">{% if pedido.tipo_solicitacao == 'exame' %}Exame:{% else %}Especialidade:{% endif %}</td>
+            <td class="valor">{{ pedido.nome_solicitacao or (exame.nome if exame else (consulta.especialidade if consulta else '')) }}</td>
+          </tr>
+          <tr>
+            <td class="label">Prioridade:</td>
+            <td class="valor {% if pedido.prioridade == 'P1' %}prioridade-urgente{% endif %}">
+              {% if pedido.prioridade == 'P1' %}P1 - URGENTE{% elif pedido.prioridade == 'P2' %}P2 - NORMAL{% else %}{% endif %}
+            </td>
+          </tr>
+        </table>
+
+        <!-- DADOS DO AGENDAMENTO -->
+        <div class="secao-titulo-destaque">DADOS DO AGENDAMENTO</div>
+        <table class="tabela-dados tabela-destaque">
+          <tr>
+            <td class="label">Data do Exame/Consulta:</td>
+            <td class="valor-destaque">{{ pedido.data_exame.strftime('%d/%m/%Y') if pedido.data_exame else '' }}</td>
+          </tr>
+          <tr>
+            <td class="label">Horário:</td>
+            <td class="valor-destaque">{{ pedido.horario_exame.strftime('%H:%M') if pedido.horario_exame else '' }}</td>
+          </tr>
+          <tr>
+            <td class="label">Local:</td>
+            <td class="valor-destaque">{{ pedido.local_exame or '' }}</td>
+          </tr>
+        </table>
+
+        <!-- Rodapé -->
+        <div class="rodape-via">
+          <div>Data de impressão: <span class="print-date"></span></div>
+          <div>Pedido ID: {{ pedido.id }}</div>
+        </div>
       </div>
+
+      <!-- ========== LINHA DE CORTE VERTICAL ========== -->
+      <div class="linha-corte-vertical"></div>
+
+      <!-- ========== 2ª VIA - ARQUIVO (DIREITA) ========== -->
+      <div class="via-coluna">
+        <div class="marcacao-via">2ª VIA - ARQUIVO</div>
+        
+        <!-- Cabeçalho -->
+        <div class="cabecalho-via">
+          <h1>SECRETARIA MUNICIPAL DE SAÚDE</h1>
+          <h2>Central de Regulação</h2>
+          <div class="numero-pedido">FOLHA DE AGENDAMENTO - PEDIDO Nº {{ pedido.id }}</div>
+        </div>
+
+        <div class="divisor-horizontal"></div>
+
+        <!-- DADOS DO PACIENTE -->
+        <div class="secao-titulo">DADOS DO PACIENTE</div>
+        <table class="tabela-dados">
+          <tr>
+            <td class="label">Nome:</td>
+            <td class="valor">{{ paciente.nome or '' }}</td>
+          </tr>
+          <tr>
+            <td class="label">CPF:</td>
+            <td class="valor">{{ paciente.cpf or '' }}</td>
+          </tr>
+          <tr>
+            <td class="label">Data de Nascimento:</td>
+            <td class="valor">{{ paciente.data_nascimento.strftime('%d/%m/%Y') if paciente.data_nascimento else '' }}</td>
+          </tr>
+          <tr>
+            <td class="label">Cartão SUS:</td>
+            <td class="valor">{{ paciente.cartao_sus or '' }}</td>
+          </tr>
+          <tr>
+            <td class="label">Telefone:</td>
+            <td class="valor">{{ paciente.telefone_principal or '' }}</td>
+          </tr>
+        </table>
+
+        <!-- DADOS DA SOLICITAÇÃO -->
+        <div class="secao-titulo">DADOS DA SOLICITAÇÃO</div>
+        <table class="tabela-dados">
+          <tr>
+            <td class="label">Unidade de Saúde:</td>
+            <td class="valor">{{ unidade.nome if unidade else (pedido.unidade_nome or '') }}</td>
+          </tr>
+          <tr>
+            <td class="label">Tipo de Solicitação:</td>
+            <td class="valor">{% if pedido.tipo_solicitacao == 'exame' %}EXAME{% else %}CONSULTA{% endif %}</td>
+          </tr>
+          <tr>
+            <td class="label">{% if pedido.tipo_solicitacao == 'exame' %}Exame:{% else %}Especialidade:{% endif %}</td>
+            <td class="valor">{{ pedido.nome_solicitacao or (exame.nome if exame else (consulta.especialidade if consulta else '')) }}</td>
+          </tr>
+          <tr>
+            <td class="label">Prioridade:</td>
+            <td class="valor {% if pedido.prioridade == 'P1' %}prioridade-urgente{% endif %}">
+              {% if pedido.prioridade == 'P1' %}P1 - URGENTE{% elif pedido.prioridade == 'P2' %}P2 - NORMAL{% else %}{% endif %}
+            </td>
+          </tr>
+        </table>
+
+        <!-- DADOS DO AGENDAMENTO -->
+        <div class="secao-titulo-destaque">DADOS DO AGENDAMENTO</div>
+        <table class="tabela-dados tabela-destaque">
+          <tr>
+            <td class="label">Data do Exame/Consulta:</td>
+            <td class="valor-destaque">{{ pedido.data_exame.strftime('%d/%m/%Y') if pedido.data_exame else '' }}</td>
+          </tr>
+          <tr>
+            <td class="label">Horário:</td>
+            <td class="valor-destaque">{{ pedido.horario_exame.strftime('%H:%M') if pedido.horario_exame else '' }}</td>
+          </tr>
+          <tr>
+            <td class="label">Local:</td>
+            <td class="valor-destaque">{{ pedido.local_exame or '' }}</td>
+          </tr>
+        </table>
+
+        <!-- Assinatura (apenas 2ª via) -->
+        <div class="secao-assinatura">
+          <div class="assinatura-titulo">ASSINATURA DO PACIENTE</div>
+          <div class="assinatura-texto">Declaro que recebi a guia de agendamento acima.</div>
+          <div class="assinatura-linha"></div>
+          <div class="assinatura-info">{{ paciente.nome or 'Nome do Paciente' }}</div>
+          <div class="assinatura-info">Data: ____/____/______</div>
+        </div>
+
+        <!-- Rodapé -->
+        <div class="rodape-via">
+          <div>Data de impressão: <span class="print-date"></span></div>
+          <div>Pedido ID: {{ pedido.id }}</div>
+        </div>
+      </div>
+
     </div>
-  </section>
-
-  <section>
-    <h2 class="font-semibold text-slate-700 mb-2">Histórico</h2>
-    {% if historico %}
-      <ol class="list-decimal list-inside space-y-2 text-sm">
-        {% for ev in historico %}
-          <li>
-            <div class="flex justify-between">
-              <div>
-                <div class="font-medium">{{ ev.status.replace('_',' ').title() }}</div>
-                {% if ev.descricao %}<div class="text-slate-600">{{ ev.descricao }}</div>{% endif %}
-              </div>
-              <div class="text-xs text-slate-400">{{ ev.criado_em.strftime('%d/%m/%Y %H:%M') if ev.criado_em else '' }}</div>
-            </div>
-          </li>
-        {% endfor %}
-      </ol>
-    {% else %}
-      <p class="text-sm text-slate-500 italic">Nenhum histórico disponível</p>
-    {% endif %}
-  </section>
-
-  <div class="mt-6 flex gap-2">
-    <a href="{{ url_for('reception.regulacao') }}" class="inline-flex items-center px-3 py-2 rounded border border-slate-200 text-sm text-slate-700">← Voltar à Recepção Regulação</a>
-    <button onclick="window.print()" class="btn-primary">Imprimir</button>
   </div>
 </div>
 
 <style>
-  @media print {
-    .btn-primary, a { display: none; }
+/* ========== Estilos para tela ========== */
+.container-duas-vias {
+  display: flex;
+  gap: 2rem;
+  position: relative;
+}
+
+.via-coluna {
+  flex: 1;
+  padding: 1.5rem;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+.marcacao-via {
+  text-align: right;
+  font-weight: bold;
+  font-size: 0.75rem;
+  color: #374151;
+  padding: 0.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid #d1d5db;
+  background-color: #f9fafb;
+}
+
+.cabecalho-via {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.cabecalho-via h1 {
+  font-size: 1.125rem;
+  font-weight: bold;
+  color: #111827;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.cabecalho-via h2 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0.25rem 0;
+}
+
+.numero-pedido {
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: #111827;
+  padding: 0.25rem 0.5rem;
+  margin-top: 0.5rem;
+  display: inline-block;
+}
+
+.divisor-horizontal {
+  height: 2px;
+  background-color: #111827;
+  margin-bottom: 1rem;
+}
+
+.secao-titulo {
+  font-weight: bold;
+  font-size: 0.875rem;
+  color: #111827;
+  background-color: #f3f4f6;
+  padding: 0.375rem 0.5rem;
+  margin: 1rem 0 0.5rem 0;
+  border-left: 3px solid #111827;
+}
+
+.secao-titulo-destaque {
+  font-weight: bold;
+  font-size: 0.875rem;
+  color: #92400e;
+  background-color: #fef3c7;
+  padding: 0.375rem 0.5rem;
+  margin: 1rem 0 0.5rem 0;
+  border-left: 3px solid #f59e0b;
+}
+
+.tabela-dados {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.tabela-dados tr {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tabela-dados td {
+  padding: 0.5rem;
+  vertical-align: top;
+}
+
+.tabela-dados .label {
+  font-weight: 600;
+  color: #374151;
+  width: 40%;
+}
+
+.tabela-dados .valor {
+  color: #111827;
+  width: 60%;
+}
+
+.tabela-destaque {
+  background-color: #fef3c7;
+}
+
+.tabela-destaque tr {
+  border-bottom: 1px solid #fde68a;
+}
+
+.tabela-destaque .label {
+  color: #92400e;
+  font-weight: bold;
+}
+
+.tabela-destaque .valor-destaque {
+  color: #92400e;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.prioridade-urgente {
+  color: #dc2626 !important;
+  font-weight: bold !important;
+}
+
+.linha-corte-vertical {
+  width: 2px;
+  border-left: 2px dashed #9ca3af;
+  flex-shrink: 0;
+}
+
+.secao-assinatura {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 2px solid #d1d5db;
+  text-align: center;
+}
+
+.assinatura-titulo {
+  font-weight: bold;
+  font-size: 0.875rem;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.assinatura-texto {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+}
+
+.assinatura-linha {
+  height: 60px;
+  border-bottom: 2px solid #6b7280;
+  margin: 0 3rem 0.75rem 3rem;
+}
+
+.assinatura-info {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0.25rem 0;
+}
+
+.rodape-via {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #6b7280;
+  padding-top: 1rem;
+  margin-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* ========== Estilos para impressão ========== */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 8mm;
   }
+  
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  body * {
+    visibility: hidden;
+  }
+  
+  .print-container,
+  .print-container * {
+    visibility: visible !important;
+  }
+  
+  .print-container {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+  
+  .no-print {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  
+  /* Container lado a lado */
+  .container-duas-vias {
+    display: flex !important;
+    gap: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+  
+  /* Colunas das vias */
+  .via-coluna {
+    flex: 1 !important;
+    padding: 0 8mm !important;
+    background-color: #fff !important;
+    page-break-inside: avoid;
+    border: none !important;
+  }
+  
+  .marcacao-via {
+    text-align: right !important;
+    font-weight: bold !important;
+    font-size: 10pt !important;
+    color: #000 !important;
+    background-color: transparent !important;
+    padding: 1mm 2mm !important;
+    margin-bottom: 2mm !important;
+    border: 1px solid #000 !important;
+  }
+  
+  /* Cabeçalho */
+  .cabecalho-via {
+    text-align: center !important;
+    margin-bottom: 3mm !important;
+  }
+  
+  .cabecalho-via h1 {
+    font-size: 14pt !important;
+    font-weight: bold !important;
+    color: #000 !important;
+    margin: 0 0 1mm 0 !important;
+    line-height: 1.2 !important;
+  }
+  
+  .cabecalho-via h2 {
+    font-size: 12pt !important;
+    font-weight: 600 !important;
+    color: #000 !important;
+    margin: 0 !important;
+  }
+  
+  .numero-pedido {
+    font-size: 10pt !important;
+    font-weight: bold !important;
+    color: #000 !important;
+    background-color: transparent !important;
+    padding: 0 !important;
+    margin-top: 1mm !important;
+    display: inline-block !important;
+    border: none !important;
+  }
+  
+  .divisor-horizontal {
+    height: 1.5px !important;
+    background-color: #000 !important;
+    margin-bottom: 2mm !important;
+  }
+  
+  /* Seções */
+  .secao-titulo {
+    font-weight: bold !important;
+    font-size: 11pt !important;
+    color: #000 !important;
+    background-color: #f3f4f6 !important;
+    padding: 1.5mm 2mm !important;
+    margin: 2mm 0 1mm 0 !important;
+    border-left: 3px solid #000 !important;
+  }
+  
+  .secao-titulo-destaque {
+    font-weight: bold !important;
+    font-size: 11pt !important;
+    color: #000 !important;
+    background-color: #fef3c7 !important;
+    padding: 1.5mm 2mm !important;
+    margin: 2mm 0 1mm 0 !important;
+    border-left: 3px solid #f59e0b !important;
+  }
+  
+  /* Tabelas */
+  .tabela-dados {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-bottom: 1.5mm !important;
+    font-size: 11pt !important;
+    line-height: 1.3 !important;
+  }
+  
+  .tabela-dados tr {
+    border-bottom: 1px solid #d1d5db !important;
+  }
+  
+  .tabela-dados td {
+    padding: 1.2mm 2mm !important;
+    vertical-align: top !important;
+  }
+  
+  .tabela-dados .label {
+    font-weight: bold !important;
+    color: #000 !important;
+    width: 40% !important;
+  }
+  
+  .tabela-dados .valor {
+    color: #000 !important;
+    width: 60% !important;
+  }
+  
+  .tabela-destaque {
+    background-color: #fef3c7 !important;
+  }
+  
+  .tabela-destaque tr {
+    border-bottom: 1px solid #fde68a !important;
+  }
+  
+  .tabela-destaque .label {
+    color: #000 !important;
+    font-weight: bold !important;
+  }
+  
+  .tabela-destaque .valor-destaque {
+    color: #000 !important;
+    font-weight: bold !important;
+    font-size: 12pt !important;
+  }
+  
+  .prioridade-urgente {
+    color: #dc2626 !important;
+    font-weight: bold !important;
+  }
+  
+  /* Linha de corte vertical - APENAS UMA LINHA PONTILHADA */
+  .linha-corte-vertical {
+    width: 4mm !important;
+    border-left: 1px dashed #666 !important;
+    border-right: none !important;
+    position: relative !important;
+    flex-shrink: 0 !important;
+    background: white !important;
+  }
+  
+  /* Assinatura */
+  .secao-assinatura {
+    margin-top: 3mm !important;
+    padding-top: 2mm !important;
+    border-top: 1.5px solid #000 !important;
+    text-align: center !important;
+    page-break-inside: avoid;
+  }
+  
+  .assinatura-titulo {
+    font-weight: bold !important;
+    font-size: 10pt !important;
+    color: #000 !important;
+    margin-bottom: 1mm !important;
+  }
+  
+  .assinatura-texto {
+    font-size: 9pt !important;
+    color: #000 !important;
+    margin-bottom: 3mm !important;
+  }
+  
+  .assinatura-linha {
+    height: 15mm !important;
+    border-bottom: 1.5px solid #000 !important;
+    margin: 0 12mm 2mm 12mm !important;
+  }
+  
+  .assinatura-info {
+    font-size: 9pt !important;
+    color: #000 !important;
+    margin: 0.5mm 0 !important;
+  }
+  
+  /* Rodapé */
+  .rodape-via {
+    display: flex !important;
+    justify-content: space-between !important;
+    font-size: 8pt !important;
+    color: #333 !important;
+    padding-top: 2mm !important;
+    margin-top: 2mm !important;
+    border-top: 1px solid #ccc !important;
+  }
+  
+  .shadow,
+  .rounded-lg {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+}
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  atualizarDataHora();
+});
+
+function atualizarDataHora() {
+  const now = new Date();
+  const dateOptions = { 
+    day: '2-digit', 
+    month: '2-digit', 
+    year: 'numeric' 
+  };
+  
+  const printDates = document.querySelectorAll('.print-date');
+  printDates.forEach(function(element) {
+    element.textContent = now.toLocaleDateString('pt-BR', dateOptions);
+  });
+}
+
+function imprimirDocumento() {
+  atualizarDataHora();
+  setTimeout(function() {
+    window.print();
+  }, 100);
+}
+</script>
 {% endblock %}
