@@ -13,6 +13,7 @@ from .blueprints.regulator import regulator_bp
 from .blueprints.scheduling import scheduling_bp
 from .blueprints.admin import admin_bp
 from .blueprints.chat import chat_blueprint
+from .utils.data_portugues import data_utils  # ✅ IMPORTAR AQUI
 
 def create_app(config_class: type[Config] = Config) -> Flask:
     app = Flask(__name__, static_folder="static", template_folder="templates")
@@ -44,8 +45,10 @@ def create_app(config_class: type[Config] = Config) -> Flask:
             "usuario_logado_unidade": unidade,
             "current_year": datetime.now().year,
             "app_version": current_app.config.get("APP_VERSION", "1.0.0"),
-            "timedelta": timedelta,  # ✅ DISPONÍVEL EM TODOS OS TEMPLATES
-            "corrigir_timezone": corrigir_timezone,  # ✅ FUNÇÃO GLOBAL
+            "timedelta": timedelta,
+            "corrigir_timezone": corrigir_timezone,
+            "datetime_py": datetime,  # ✅ Módulo datetime padrão
+            "data_pt": data_utils       # ✅ Suas funções customizadas
         }
     
     from .blueprints.chat import socket_events
