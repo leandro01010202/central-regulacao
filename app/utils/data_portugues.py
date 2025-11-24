@@ -58,17 +58,49 @@ def data_simples_hora(data=None):
     
     return data.strftime('%d/%m/%Y às %H:%M')
 
-# Instância global para facilitar o uso
-data_utils = type('DataUtilsPT', (), {
-    'agora': lambda: datetime.now(),
-    'formatar': data_pt,
-    'formatar_completa': data_pt,
-    'formatar_hora': data_pt_hora,
-    'simples': data_simples,
-    'simples_hora': data_simples_hora,
-    'mes': lambda data: MESES.get(data.month if data else datetime.now().month, 'N/A'),
-    'dia_semana': lambda data: DIAS.get(data.weekday() if data else datetime.now().weekday(), 'N/A')
-})()
+# Classe corrigida com métodos estáticos
+class DataUtilsPT:
+    @staticmethod
+    def formatar_hora(data=None):
+        """Formata data com hora em português"""
+        return data_pt_hora(data)
+    
+    @staticmethod
+    def agora():
+        """Retorna datetime atual"""
+        return datetime.now()
+    
+    @staticmethod
+    def formatar(data=None):
+        """Formata data em português"""
+        return data_pt(data)
+    
+    @staticmethod
+    def simples(data=None):
+        """Formata data simples (dd/mm/aaaa)"""
+        return data_simples(data)
+    
+    @staticmethod
+    def simples_hora(data=None):
+        """Formata data com hora simples (dd/mm/aaaa às HH:MM)"""
+        return data_simples_hora(data)
+    
+    @staticmethod
+    def mes(data=None):
+        """Retorna nome do mês em português"""
+        if data is None:
+            data = datetime.now()
+        return MESES.get(data.month, 'N/A')
+    
+    @staticmethod
+    def dia_semana(data=None):
+        """Retorna nome do dia da semana em português"""
+        if data is None:
+            data = datetime.now()
+        return DIAS.get(data.weekday(), 'N/A')
+
+# Instância para uso fácil
+data_utils = DataUtilsPT()
 
 if __name__ == "__main__":
     print("=== TESTE RÁPIDO ===")
@@ -76,3 +108,4 @@ if __name__ == "__main__":
     print(f"Agora: {data_pt_hora(agora)}")
     print(f"Data: {data_pt(agora)}")
     print(f"Simples: {data_simples(agora)}")
+    print(f"Via data_utils: {data_utils.formatar_hora()}")

@@ -20,7 +20,7 @@
             <svg class="h-4 w-4 text-primario-500" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
             </svg>
-            <!-- 🔄 NOVA FORMA: Data e hora em português -->
+            <!-- ✅ CORRIGIDO: Usando datetime padrão do Python -->
             <span>{{ datetime.formatar_hora() }}</span>
           </div>
           <div class="flex items-center gap-2">
@@ -203,8 +203,8 @@
         </div>
       </div>
       <div class="text-center">
-        <!-- 🔄 NOVA FORMA: Dia da semana em português -->
-        <p class="text-3xl font-bold text-indigo-600">{{ datetime.dia_semana() }}</p>
+        <!-- ✅ CORRIGIDO: Usando analytics do backend -->
+        <p class="text-3xl font-bold text-indigo-600">{{ analytics.dia_mais_ativo or "N/A" }}</p>
         <p class="text-sm text-slate-600 mt-1">{{ analytics.volume_dia or 0 }} pedidos</p>
       </div>
     </div>
@@ -329,9 +329,9 @@
                   </svg>
                 </div>
                 <div>
-                  <!-- 🔄 NOVA FORMA: Data em português -->
+                  <!-- ✅ CORRIGIDO: Formatação padrão de data -->
                   <div class="font-semibold text-slate-900">
-                    {{ datetime.formatar(dia.data) if dia.data else 'Data não disponível' }}
+                    {{ dia.data.strftime('%d/%m/%Y') if dia.data else 'Data não disponível' }}
                   </div>
                   <div class="flex items-center gap-4 text-sm text-slate-600 mt-1">
                     <div class="flex items-center gap-1">
@@ -449,7 +449,7 @@
     </div>
   </div>
 
-  <!-- Seções Específicas por Role (mantidas iguais) -->
+  <!-- Seções Específicas por Role -->
   {% if user_role == "admin" %}
     <div class="app-section">
       <div class="flex items-center justify-between mb-8">
@@ -565,7 +565,7 @@
     </div>
   {% endif %}
 
-  <!-- Chat e Comunicação Avançada -->
+  <!-- Chat e Comunicação -->
   <div class="app-section">
     <div class="flex items-center justify-between mb-8">
       <div>
@@ -619,7 +619,7 @@
     </div>
   </div>
 
-  <!-- Tipos de Solicitação com Detalhes -->
+  <!-- Tipos de Solicitação -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     <!-- Exames -->
     <div class="app-section group hover:shadow-suave transition-all duration-300">
@@ -701,62 +701,6 @@
             <div class="text-lg font-bold text-slate-900">{{ ((stats.pedidos.total_consultas or 0) - ((stats.pedidos.prioridade_alta or 0) * 0.3 | round | int)) }}</div>
             <div class="text-xs text-slate-600">Normais</div>
           </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Exemplo adicional de uso de datas em português -->
-  <div class="app-card">
-    <div class="flex items-center gap-3 mb-4">
-      <div class="w-12 h-12 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl flex items-center justify-center shadow-inner">
-        <svg class="w-6 h-6 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-        </svg>
-      </div>
-      <div>
-        <h3 class="text-xl font-bold text-slate-900">Demonstração de Datas em Português</h3>
-        <p class="text-sm text-slate-600 mt-1">Diferentes formatos disponíveis</p>
-      </div>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <!-- 🔄 EXEMPLO: Diferentes formatos de data -->
-      <div class="p-4 bg-indigo-50 rounded-lg">
-        <p class="text-sm font-semibold text-indigo-800 mb-2">Data Completa</p>
-        <p class="text-lg font-bold text-indigo-600">{{ datetime.formatar() }}</p>
-      </div>
-      
-      <div class="p-4 bg-purple-50 rounded-lg">
-        <p class="text-sm font-semibold text-purple-800 mb-2">Com Hora</p>
-        <p class="text-lg font-bold text-purple-600">{{ datetime.formatar_hora() }}</p>
-      </div>
-      
-      <div class="p-4 bg-teal-50 rounded-lg">
-        <p class="text-sm font-semibold text-teal-800 mb-2">Data Simples</p>
-        <p class="text-lg font-bold text-teal-600">{{ datetime.simples() }}</p>
-      </div>
-      
-      <div class="p-4 bg-cyan-50 rounded-lg">
-        <p class="text-sm font-semibold text-cyan-800 mb-2">Com Hora (Simples)</p>
-        <p class="text-lg font-bold text-cyan-600">{{ datetime.simples_hora() }}</p>
-      </div>
-    </div>
-    
-    <!-- Exemplo de uso com datas do banco -->
-    <div class="mt-6 p-4 bg-gray-50 rounded-lg">
-      <p class="text-sm font-semibold text-gray-800 mb-3">Para usar com datas do banco de dados:</p>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <p class="text-xs text-gray-600 mb-1">Template:</p>
-          <code class="text-xs bg-white p-2 rounded block text-gray-800">
-            {{ datetime.formatar(data_exemplo) if data_exemplo else 'Data não disponível' }}
-          </code>
-        </div>
-        <div>
-          <p class="text-xs text-gray-600 mb-1">View:</p>
-          <code class="text-xs bg-white p-2 rounded block text-gray-800">
-            datetime=data_utils
-          </code>
         </div>
       </div>
     </div>
