@@ -16,6 +16,7 @@ class StatusPedido(str, Enum):
     AGENDAMENTO_EM_ANDAMENTO = "agendamento_em_andamento"
     AGENDAMENTO_CONFIRMADO = "agendamento_confirmado"
     DEVOLVIDO_SEM_CONTATO = "devolvido_sem_contato_recepcao"
+    RETIRADO = "retirado"
 
     @classmethod
     def choices(cls):

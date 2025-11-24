@@ -123,11 +123,52 @@ def lista(tipo: str):
         (9, "Setembro"), (10, "Outubro"), (11, "Novembro"), (12, "Dezembro"),
     ]
 
+    # ==========================================================
+    # PAGINAÇÃO
+    # ==========================================================
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 10, type=int)
+
+    # importantíssimo: manter filtros nos links
+    def url_with_params(page_number):
+        return url_for(
+            "scheduling.lista",
+            tipo=tipo,
+            page=page_number,
+            per_page=per_page,
+            ano=ano,
+            mes=mes,
+            prioridade=prioridade,
+            nome=nome,
+            cpf=cpf,
+            exame=exame_q,
+        )
+
+    # aplicar paginação separada para exames e consultas
+    total_exames = len(exames)
+    total_consultas = len(consultas)
+
+    start = (page - 1) * per_page
+    end = start + per_page
+
+    exames_page = exames[start:end]
+    consultas_page = consultas[start:end]
+
+    total_paginas = max(
+        (total_exames + per_page - 1) // per_page,
+        (total_consultas + per_page - 1) // per_page,
+    )
+
+
     template = f"scheduling/{tipo}.html"
     return render_template(
         template,
-        exames=exames,
-        consultas=consultas,   # 👈 agora o template recebe as duas listas
+
+        # Listas paginadas
+        exames=exames_page,
+        consultas=consultas_page,
+
+        # Dados originais
         pedidos=pedidos,
         dados=dados,
         exame_selecionado=exame_q,
@@ -141,7 +182,14 @@ def lista(tipo: str):
         nome_selecionado=nome,
         cpf_selecionado=cpf,
         tipo_agendador=current_user.tipo_agendador,
+
+        # 🔹 Variáveis da paginação
+        page=page,
+        per_page=per_page,
+        total_paginas=total_paginas,
+        make_page_url=url_with_params,
     )
+
 
 
 # ==========================================================

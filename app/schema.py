@@ -90,25 +90,37 @@ SCHEMA_STATEMENTS = [
         usuario_atualizacao INT NOT NULL,
         motivo_cancelamento TEXT,
         motivo_devolucao TEXT,
-        motivos_devolucao_checkboxes JSON NULL COMMENT 'Motivos de devolução selecionados via checkboxes (formato JSON)',
+        motivos_devolucao_checkboxes JSON NULL,
         pendente_recepcao TINYINT(1) DEFAULT 0,
         anexos JSON NULL,
         data_exame DATE,
         horario_exame TIME,
         local_exame VARCHAR(255),
         observacoes TEXT,
+        retirado_por_nome VARCHAR(150) NULL,
+        retirado_por_cpf CHAR(11) NULL,
+        data_retirada DATETIME NULL,
+        entrega_confirmada TINYINT(1) NOT NULL DEFAULT 0,
+        entregue_por_usuario INT NULL,
+        data_entrega DATETIME NULL,
+
         tentativas_contato INT DEFAULT 0,
+
         FOREIGN KEY (paciente_id) REFERENCES pacientes(id),
         FOREIGN KEY (exame_id) REFERENCES exames(id),
         FOREIGN KEY (consulta_id) REFERENCES consultas(id),
         FOREIGN KEY (unidade_id) REFERENCES unidades_saude(id),
         FOREIGN KEY (usuario_criacao) REFERENCES usuarios(id),
         FOREIGN KEY (usuario_atualizacao) REFERENCES usuarios(id),
+        FOREIGN KEY (entregue_por_usuario) REFERENCES usuarios(id),
+
         CONSTRAINT chk_exame_ou_consulta CHECK (
-            (exame_id IS NOT NULL AND consulta_id IS NULL) OR 
+            (exame_id IS NOT NULL AND consulta_id IS NULL) OR
             (exame_id IS NULL AND consulta_id IS NOT NULL)
         )
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
     """,
     
     """
@@ -185,4 +197,6 @@ SCHEMA_STATEMENTS = [
         UNIQUE KEY uq_conversation_user (conversation_id, user_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     """
+
+    
 ]

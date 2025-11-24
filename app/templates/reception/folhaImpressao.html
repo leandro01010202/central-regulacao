@@ -206,6 +206,58 @@
     </div>
   </div>
 </div>
+<!-- MODAL: Registrar Retirada (antes da impressão) -->
+<div id="modalRetirada" class="modal flex" tabindex="-1" role="dialog" aria-hidden="true" style="display:none;">
+  <div class="modal-overlay"></div>
+  <div class="modal-dialog">
+    <div class="modal-content p-4 bg-white rounded shadow">
+      <h3 class="text-lg font-semibold mb-2">Registrar Retirada</h3>
+
+      <form id="formRetirada">
+        <div class="mb-3">
+          <label class="inline-flex items-center">
+            <input type="radio" name="tipo_retirada" value="paciente" checked />
+            <span class="ml-2">Retirada pelo próprio paciente</span>
+          </label>
+          <label class="inline-flex items-center ml-4">
+            <input type="radio" name="tipo_retirada" value="terceiro" />
+            <span class="ml-2">Retirada por outra pessoa</span>
+          </label>
+        </div>
+
+        <div class="mb-2">
+          <label class="text-xs font-medium text-slate-600">Nome do retirante</label>
+          <input type="text" id="retiranteNome" name="nome" class="w-full rounded border p-2" />
+        </div>
+
+        <div class="mb-4">
+          <label class="text-xs font-medium text-slate-600">CPF do retirante</label>
+          <input type="text" id="retiranteCPF" name="cpf" maxlength="11" class="w-full rounded border p-2" />
+        </div>
+
+        <div class="flex justify-end gap-2">
+          <button type="button" class="btn-outline" id="btnCancelarRetirada">Cancelar</button>
+          <button type="submit" class="btn-primary" id="btnConfirmarRetirada">Confirmar e Imprimir</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Confirmar Entrega (após impressão) -->
+<div id="modalConfirmarEntrega" class="modal flex" tabindex="-1" role="dialog" aria-hidden="true" style="display:none;">
+  <div class="modal-overlay"></div>
+  <div class="modal-dialog">
+    <div class="modal-content p-4 bg-white rounded shadow">
+      <h3 class="text-lg font-semibold mb-2">Confirmação de Entrega</h3>
+      <p>Confirma que o pedido foi entregue para a pessoa registrada?</p>
+      <div class="mt-4 flex justify-end gap-2">
+        <button id="btnCancelarConfirmacao" class="btn-outline">Cancelar</button>
+        <button id="btnConfirmarEntrega" class="btn-primary">Sim, confirmar entrega</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <style>
 /* ========== Estilos para tela ========== */
@@ -386,6 +438,46 @@
   margin-top: 1.5rem;
   border-top: 1px solid #e5e7eb;
 }
+
+/* =======================
+   MODAL CUSTOM CENTRALIZADO
+   ======================= */
+.modal {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none; /* programado pelo JS */
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 1;
+}
+
+.modal-dialog {
+  position: relative;
+  background: white;
+  width: 380px;
+  max-width: 92%;
+  padding: 1rem;
+  border-radius: 10px;
+  z-index: 2;
+  box-shadow: 0 0 25px rgba(0,0,0,0.25);
+  animation: modalFadeIn .25s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: scale(0.90); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
 
 /* ========== Estilos para impressão ========== */
 @media print {
@@ -629,30 +721,150 @@
 </style>
 
 <script>
+function imprimirDocumento() {
+    // mantém o comportamento do botão
+    showModal('#modalRetirada');
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-  atualizarDataHora();
-});
+    atualizarDataHora();
+
+    const nomePaciente = "{{ paciente.nome|e if paciente else '' }}";
+    const cpfPaciente = "{{ paciente.cpf|e if paciente else '' }}";
+
+    const tipoRadios = document.querySelectorAll('input[name="tipo_retirada"]');
+    const nomeInput = document.querySelector('#retiranteNome');
+    const cpfInput = document.querySelector('#retiranteCPF');
+
+    if (nomeInput) nomeInput.value = nomePaciente;
+    if (cpfInput) cpfInput.value = cpfPaciente;
+
+    toggleReadOnly(true);
+
+    function toggleReadOnly(flag) {
+        nomeInput.readOnly = flag;
+        cpfInput.readOnly = flag;
+        nomeInput.classList.toggle('opacity-60', flag);
+        cpfInput.classList.toggle('opacity-60', flag);
+    }
+
+    tipoRadios.forEach(r => r.addEventListener('change', () => {
+        if (r.value === 'paciente') {
+            nomeInput.value = nomePaciente;
+            cpfInput.value = cpfPaciente;
+            toggleReadOnly(true);
+        } else {
+            nomeInput.value = "";
+            cpfInput.value = "";
+            toggleReadOnly(false);
+        }
+    }));
+
+    document.querySelector('#btnCancelarRetirada')?.addEventListener('click', () => {
+        hideModal('#modalRetirada');
+    });
+
+    document.querySelector('#btnCancelarConfirmacao')?.addEventListener('click', () => {
+        hideModal('#modalConfirmarEntrega');
+    });
+
+    document.querySelector('#btnConfirmarEntrega')?.addEventListener('click', async () => {
+        try {
+            const resp = await fetch(`{{ url_for('reception.confirmar_entrega_route', pedido_id=pedido.id) }}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (!resp.ok) {
+                alert("Erro ao confirmar entrega.");
+                return;
+            }
+
+            const data = await resp.json();
+            if (data.success) {
+                hideModal('#modalConfirmarEntrega');
+                window.location.reload();
+            } else {
+                alert(data.error || "Erro ao confirmar entrega.");
+            }
+        } catch (err) {
+            alert('Erro na requisição: ' + err);
+        }
+    });
+
+    document.querySelector('#formRetirada')?.addEventListener('submit', async function(evt) {
+        evt.preventDefault();
+
+        const nome = nomeInput.value.trim();
+        const cpf = cpfInput.value.trim();
+
+        if (!nome || !cpf) return alert("Preencha nome e CPF.");
+
+        if (cpf.length !== 11) return alert("CPF deve conter 11 dígitos.");
+
+        try {
+            const resp = await fetch(`{{ url_for('reception.registrar_retirada_route', pedido_id=pedido.id) }}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nome, cpf })
+            });
+
+            if (!resp.ok) {
+                alert("Erro ao registrar retirada.");
+                return;
+            }
+
+            const data = await resp.json();
+
+            if (!data.success) {
+                alert(data.error || "Falha ao registrar retirada.");
+                return;
+            }
+
+            hideModal('#modalRetirada');
+
+            atualizarDataHora();
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => {
+                    showModal('#modalConfirmarEntrega');
+                }, 300);
+            }, 200);
+
+        } catch (e) {
+            alert("Erro ao salvar retirada: " + e);
+        }
+    });
+
+}); // DOM LOADED END
+
+function showModal(selector) {
+    const el = document.querySelector(selector);
+    if (el) {
+        el.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function hideModal(selector) {
+    const el = document.querySelector(selector);
+    if (el) {
+        el.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+}
 
 function atualizarDataHora() {
-  const now = new Date();
-  const dateOptions = { 
-    day: '2-digit', 
-    month: '2-digit', 
-    year: 'numeric' 
-  };
-  
-  const printDates = document.querySelectorAll('.print-date');
-  printDates.forEach(function(element) {
-    element.textContent = now.toLocaleDateString('pt-BR', dateOptions);
-  });
-}
+    const now = new Date();
+    const dateOptions = { day: '2-digit', month: '2-digit', year: 'numeric' };
 
-function imprimirDocumento() {
-  atualizarDataHora();
-  setTimeout(function() {
-    window.print();
-  }, 100);
+    document.querySelectorAll('.print-date').forEach(el => {
+        el.textContent = now.toLocaleDateString('pt-BR', dateOptions);
+    });
 }
 </script>
+
+
+
 {% endblock %}
 .

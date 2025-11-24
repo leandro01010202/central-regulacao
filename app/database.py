@@ -48,6 +48,7 @@ class MySQLConnector:
         with self.get_cursor(dictionary=False) as (connection, cursor):
             # ✅ DEFINIR TIMEZONE LOGO APÓS CONECTAR
             cursor.execute("SET time_zone = '-03:00'")
+            cursor.execute("SET lc_time_names = 'pt_BR'")
             
             for statement in SCHEMA_STATEMENTS:
                 cursor.execute(statement)
@@ -105,6 +106,7 @@ class MySQLConnector:
         # ✅ DEFINIR TIMEZONE EM CADA CONEXÃO
         cursor = connection.cursor()
         cursor.execute("SET time_zone = '-03:00'")
+        cursor.execute("SET lc_time_names = 'pt_BR'")
         cursor.close()
         return connection
 

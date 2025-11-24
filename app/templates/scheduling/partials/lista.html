@@ -90,4 +90,40 @@
       <p class="text-blue-700">Nenhum pedido aguardando agendamento.</p>
     </div>
   {% endfor %}
+
+  {% if total_paginas > 1 %}
+  <div class="flex justify-between items-center mt-6">
+
+    <!-- Anterior -->
+    {% if page > 1 %}
+      <a href="{{ make_page_url(page - 1) }}"
+        class="px-4 py-2 bg-slate-200 rounded hover:bg-slate-300">
+        ← Anterior
+      </a>
+    {% else %}
+      <span class="px-4 py-2 bg-slate-100 rounded opacity-50 cursor-not-allowed">
+        ← Anterior
+      </span>
+    {% endif %}
+
+    <!-- Páginas -->
+    <span class="text-sm text-slate-600">
+      Página {{ page }} de {{ total_paginas }}
+    </span>
+
+    <!-- Próxima -->
+    {% if page < total_paginas %}
+      <a href="{{ make_page_url(page + 1) }}"
+        class="px-4 py-2 bg-slate-200 rounded hover:bg-slate-300">
+        Próxima →
+      </a>
+    {% else %}
+      <span class="px-4 py-2 bg-slate-100 rounded opacity-50 cursor-not-allowed">
+        Próxima →
+      </span>
+    {% endif %}
+
+  </div>
+  {% endif %}
+
 </div>
