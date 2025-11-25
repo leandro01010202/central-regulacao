@@ -19,6 +19,7 @@ def lista(tipo: str):
         abort(404)
 
     papel_necessario = "agendador_municipal" if tipo == "municipal" else "agendador_estadual"
+    
     if current_user.role not in (papel_necessario, "admin"):
         abort(403)
 
@@ -62,6 +63,7 @@ def lista(tipo: str):
         exame_lower = exame_q.lower()
         pedidos = [p for p in pedidos if exame_lower in ((p.get('exame_nome') or p.get('nome_solicitacao') or '').lower())]
 
+    
     # 🔥 SEPARAÇÃO FINAL
     exames = [p for p in pedidos if p.get("exame_id")]
     consultas = [p for p in pedidos if p.get("consulta_id")]
@@ -123,43 +125,63 @@ def lista(tipo: str):
         (9, "Setembro"), (10, "Outubro"), (11, "Novembro"), (12, "Dezembro"),
     ]
 
-    # ==========================================================
-    # PAGINAÇÃO
-    # ==========================================================
-    page = request.args.get("page", 1, type=int)
-    per_page = request.args.get("per_page", 10, type=int)
+# ==========================================================
+# PAGINAÇÃO — COMPLETAMENTE FUNCIONAL
+# ==========================================================
 
-    # importantíssimo: manter filtros nos links
-    def url_with_params(page_number):
-        return url_for(
-            "scheduling.lista",
-            tipo=tipo,
-            page=page_number,
-            per_page=per_page,
-            ano=ano,
-            mes=mes,
-            prioridade=prioridade,
-            nome=nome,
-            cpf=cpf,
-            exame=exame_q,
-        )
+    # Página atual de cada lista
+    page_exames = request.args.get("page_exames", 1, type=int)
+    page_consultas = request.args.get("page_consultas", 1, type=int)
 
-    # aplicar paginação separada para exames e consultas
+    per_page = 10  # seu template não trabalha com per_page dinâmico
+
+    # ----------------------------------------------------------
+    # Paginação de EXAMES
+    # ----------------------------------------------------------
     total_exames = len(exames)
+    total_paginas_exames = (total_exames + per_page - 1) // per_page
+
+    start_ex = (page_exames - 1) * per_page
+    end_ex = start_ex + per_page
+    exames_page = exames[start_ex:end_ex]
+
+    # ----------------------------------------------------------
+    # Paginação de CONSULTAS
+    # ----------------------------------------------------------
     total_consultas = len(consultas)
+    total_paginas_consultas = (total_consultas + per_page - 1) // per_page
 
-    start = (page - 1) * per_page
-    end = start + per_page
+    start_co = (page_consultas - 1) * per_page
+    end_co = start_co + per_page
+    consultas_page = consultas[start_co:end_co]
 
-    exames_page = exames[start:end]
-    consultas_page = consultas[start:end]
+    # ----------------------------------------------------------
+    # Função de URL que mantém filtros e altera só a página correta
+    # ----------------------------------------------------------
+    def make_page_url(page, tipo_lista):
+        params = {
+            "tipo": tipo,
+            "ano": ano,
+            "mes": mes,
+            "prioridade": prioridade,
+            "nome": nome,
+            "cpf": cpf,
+            "exame": exame_q,
+            "page_exames": page_exames,
+            "page_consultas": page_consultas,
+        }
 
-    total_paginas = max(
-        (total_exames + per_page - 1) // per_page,
-        (total_consultas + per_page - 1) // per_page,
-    )
+        # Atualiza apenas a página do tipo correto
+        if tipo_lista == "exames":
+            params["page_exames"] = page
+        else:
+            params["page_consultas"] = page
 
+        return url_for("scheduling.lista", **params)
 
+    # ==========================================================
+    # RENDER TEMPLATE
+    # ==========================================================
     template = f"scheduling/{tipo}.html"
     return render_template(
         template,
@@ -183,12 +205,19 @@ def lista(tipo: str):
         cpf_selecionado=cpf,
         tipo_agendador=current_user.tipo_agendador,
 
-        # 🔹 Variáveis da paginação
-        page=page,
-        per_page=per_page,
-        total_paginas=total_paginas,
-        make_page_url=url_with_params,
+        # Paginação de EXAMES
+        page_exames=page_exames,
+        total_paginas_exames=total_paginas_exames,
+
+        # Paginação de CONSULTAS
+        page_consultas=page_consultas,
+        total_paginas_consultas=total_paginas_consultas,
+
+        # Função de geração de URLs
+        make_page_url=make_page_url,
     )
+
+
 
 
 
@@ -216,6 +245,10 @@ def registrar(tipo: str, pedido_id: int):
     data_exame_final = datetime.strptime(data_exame, "%Y-%m-%d").date() if data_exame else None
     horario_final = datetime.strptime(horario_exame, "%H:%M").time() if horario_exame else None
 
+    tipo_agendador = current_user.tipo_agendador
+    if current_user.role == "admin":
+        admin_view = request.args.get("admin_view", "exames")
+        tipo_agendador = admin_view
     # --------------------------
     # 🔹 Validação de dados
     # --------------------------

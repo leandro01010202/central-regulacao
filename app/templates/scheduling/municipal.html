@@ -102,7 +102,7 @@
 <div class="border-b border-gray-200 mb-4">
   <ul class="flex flex-wrap -mb-px text-sm font-medium text-center">
 
-    {% if not tipo_agendador or tipo_agendador == 'exame' %}
+    {% if tipo_agendador == 'exame' or (role == 'admin') or not tipo_agendador %}
     <li class="me-2">
       <button
         class="inline-block p-4 border-b-2 rounded-t-lg active-tab"
@@ -113,7 +113,7 @@
     </li>
     {% endif %}
 
-    {% if not tipo_agendador or tipo_agendador == 'consulta' %}
+    {% if tipo_agendador == 'consulta' or (role == 'admin') or not tipo_agendador %}
     <li class="me-2">
       <button
         class="inline-block p-4 border-b-2 rounded-t-lg text-gray-500 hover:text-gray-600 {% if tipo_agendador == 'consulta' %}active-tab{% endif %}"
@@ -142,18 +142,19 @@
 <div id="tab-content">
 
   <!-- EXAMES -->
-  {% if not tipo_agendador or tipo_agendador == 'exame' %}
-  <div id="tab-exames-content" class="tab-pane {% if tipo_agendador == 'consulta' %}hidden{% else %}block{% endif %}">
-    {% set pedidos = exames %}
-    {% include "scheduling/partials/lista.html" with context %}
-  </div>
+  {% if tipo_agendador == 'exame' or (role == 'admin') or not tipo_agendador %}
+    <div id="tab-exames-content" class="tab-pane {% if request.args.get('tab') == 'consultas' %}hidden{% else %}block{% endif %}">
+        {% set pedidos = exames %}  <!-- ✅ Sempre usar lista 'exames' na aba exames -->
+        {% include "scheduling/partials/lista.html" with context %}
+    </div>
   {% endif %}
 
   <!-- CONSULTAS -->
-  {% if not tipo_agendador or tipo_agendador == 'consulta' %}
-  <div id="tab-consultas-content" class="tab-pane {% if tipo_agendador == 'exame' %}hidden{% else %}block{% endif %}">
-    {% include "scheduling/partials/lista_consultas.html" with context %}
-  </div>
+  {% if tipo_agendador == 'consulta' or (role == 'admin') or not tipo_agendador %}
+    <div id="tab-consultas-content" class="tab-pane {% if request.args.get('tab') == 'consultas' %}block{% else %}hidden{% endif %}">
+      {% set pedidos = consultas %}  <!-- ✅ Sempre usar lista 'consultas' na aba consultas -->
+      {% include "scheduling/partials/lista_consultas.html" with context %}
+    </div>
   {% endif %}
 
   <!-- TABELA -->
