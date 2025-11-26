@@ -128,12 +128,13 @@
 
 	<!-- EXAMES -->
 	<div id="tab-exames-content" class="tab-pane block">
-		{% set pedidos = exames %}
+		{% set pedidos = exames %}  <!-- ✅ Forçar uso da lista exames -->
 		{% include "scheduling/partials/lista.html" with context %}
 	</div>
 
 	<!-- CONSULTAS -->
 	<div id="tab-consultas-content" class="tab-pane hidden">
+		{% set pedidos = consultas %}  <!-- ✅ Forçar uso da lista consultas -->
 		{% include "scheduling/partials/lista_consultas.html" with context %}
 	</div>
 

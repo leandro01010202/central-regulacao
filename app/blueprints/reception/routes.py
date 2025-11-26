@@ -1,7 +1,7 @@
 from datetime import date, datetime, timedelta
 from typing import Any, Dict, Optional
 
-from flask import render_template, request, redirect, url_for, flash, abort
+from flask import render_template, request, redirect, url_for, flash, abort, jsonify
 from flask_login import login_required, current_user
 from urllib.parse import urlparse
 
@@ -13,6 +13,7 @@ from app.repositories import unidades as unidades_repo
 from app.repositories import consultas as consultas_repo
 from app.services.pedidos_service import atualizar_status, registrar_historico
 from app.utils.decorators import roles_required
+from app.services.pedidos_service import registrar_retirada_service, confirmar_entrega_service
 from . import reception_bp
 
 
@@ -583,3 +584,35 @@ def folha_impressao(pedido_id: int):
         unidade=unidade,
         historico=historico,
     )
+
+# Rota para registrar retirada (chamada antes da impressão)
+@reception_bp.route("/pedido/<int:pedido_id>/registrar-retirada", methods=["POST"])
+@login_required
+def registrar_retirada_route(pedido_id):
+    """
+    Espera JSON ou form: { 'nome': '...', 'cpf': '...' }
+    Se for o próprio paciente, o frontend pode enviar os dados do paciente.
+    """
+    data = request.get_json() or request.form
+    nome = data.get("nome")
+    cpf = data.get("cpf")
+
+    if not nome or not cpf:
+        return jsonify({"success": False, "error": "Nome e CPF são obrigatórios."}), 400
+
+    try:
+        registrar_retirada_service(pedido_id, nome, cpf, current_user.id)
+        return jsonify({"success": True})
+    except Exception as exc:
+        return jsonify({"success": False, "error": str(exc)}), 500
+
+
+# Rota para confirmar entrega (chamada depois da impressão e confirmação)
+@reception_bp.route("/pedido/<int:pedido_id>/confirmar-entrega", methods=["POST"])
+@login_required
+def confirmar_entrega_route(pedido_id):
+    try:
+        confirmar_entrega_service(pedido_id, current_user.id)
+        return jsonify({"success": True})
+    except Exception as exc:
+        return jsonify({"success": False, "error": str(exc)}), 500

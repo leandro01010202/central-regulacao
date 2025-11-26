@@ -60,12 +60,77 @@ def obter_por_id(pedido_id: int) -> Optional[dict]:
                e.nome AS exame_nome,
                c.nome AS consulta_nome,
                c.especialidade AS consulta_especialidade,
-               un.nome AS unidade_nome
+               un.nome AS unidade_nome,
+               -- campos de retirada/entrega
+               p.retirado_por_nome,
+               p.retirado_por_cpf,
+               p.data_retirada,
+               p.entrega_confirmada,
+               p.entregue_por_usuario,
+               p.data_entrega
         FROM pedidos p
         JOIN pacientes pa ON pa.id = p.paciente_id
         LEFT JOIN exames e ON e.id = p.exame_id
         LEFT JOIN consultas c ON c.id = p.consulta_id
         JOIN unidades_saude un ON un.id = p.unidade_id
+        WHERE p.id = %s
+    """
+    with mysql.get_cursor(dictionary=True) as (_, cursor):
+        cursor.execute(query, (pedido_id,))
+        return cursor.fetchone()
+
+# ==========================================================
+# 📦 Registrar retirada diretamente no pedido
+# ==========================================================
+def registrar_retirada(pedido_id: int, nome_retirante: str, cpf_retirante: str, usuario_id: int):
+    """
+    Salva os dados da retirada no próprio registro do pedido.
+    Não marca como 'entregue' ainda — isso será feito no passo de confirmação.
+    """
+    campos = {
+        "retirado_por_nome": nome_retirante,
+        "retirado_por_cpf": cpf_retirante,
+        "data_retirada": "NOW()",
+        "entrega_confirmada": 0,
+        "entregue_por_usuario": None,
+        "data_entrega": None,
+    }
+
+    # montar query com tratamento para NOW() e NULL
+    set_parts = []
+    valores = []
+    for k, v in campos.items():
+        if v == "NOW()":
+            set_parts.append(f"{k}=NOW()")
+        elif v is None:
+            set_parts.append(f"{k}=NULL")
+        else:
+            set_parts.append(f"{k}=%s")
+            valores.append(v)
+
+    valores.append(pedido_id)
+    query = f"UPDATE pedidos SET {', '.join(set_parts)}, data_atualizacao=NOW() WHERE id=%s"
+
+    with mysql.get_cursor() as (_, cursor):
+        cursor.execute(query, tuple(valores))
+
+
+# ==========================================================
+# 🔎 Obter dados de retirada/entrega para um pedido
+# ==========================================================
+def obter_informacoes_retirada(pedido_id: int) -> Optional[dict]:
+    query = """
+        SELECT
+            p.id,
+            p.retirado_por_nome,
+            p.retirado_por_cpf,
+            p.data_retirada,
+            p.entrega_confirmada,
+            p.entregue_por_usuario,
+            p.data_entrega,
+            u.nome AS usuario_entrega_nome
+        FROM pedidos p
+        LEFT JOIN usuarios u ON u.id = p.entregue_por_usuario
         WHERE p.id = %s
     """
     with mysql.get_cursor(dictionary=True) as (_, cursor):
@@ -482,3 +547,4 @@ def listar_devolvidos_todas_unidades() -> List[dict]:
     with mysql.get_cursor(dictionary=True) as (_, cursor):
         cursor.execute(query, ("devolvido_medico_para_recepcao",))
         return cursor.fetchall()
+

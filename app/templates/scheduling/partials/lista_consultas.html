@@ -104,4 +104,39 @@
       <p class="text-blue-700">Nenhuma consulta aguardando agendamento.</p>
     </div>
   {% endfor %}
+  {% if total_paginas_consultas > 1 %}
+    <div class="flex justify-between items-center mt-6">
+
+      <!-- Anterior -->
+      {% if page_consultas > 1 %}
+        <a href="{{ make_page_url(page_consultas - 1, 'consultas') }}"
+          class="px-4 py-2 bg-slate-200 rounded hover:bg-slate-300">
+          ← Anterior
+        </a>
+      {% else %}
+        <span class="px-4 py-2 bg-slate-100 rounded opacity-50 cursor-not-allowed">
+          ← Anterior
+        </span>
+      {% endif %}
+
+      <!-- Páginas -->
+      <span class="text-sm text-slate-600">
+        Página {{ page_consultas }} de {{ total_paginas_consultas }}
+      </span>
+
+      <!-- Próxima -->
+      {% if page_consultas < total_paginas_consultas %}
+        <a href="{{ make_page_url(page_consultas + 1, 'consultas') }}"
+          class="px-4 py-2 bg-slate-200 rounded hover:bg-slate-300">
+          Próxima →
+        </a>
+      {% else %}
+        <span class="px-4 py-2 bg-slate-100 rounded opacity-50 cursor-not-allowed">
+          Próxima →
+        </span>
+      {% endif %}
+
+    </div>
+  {% endif %}
+
 </div>

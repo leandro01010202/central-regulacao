@@ -57,6 +57,15 @@
               <td class="px-4 py-3 text-sm text-slate-600">{{ pedido.nome_solicitacao }}</td>
               <td class="px-4 py-3">
                 <span class="badge bg-sky-100 text-sky-700">{{ pedido.status }}</span>
+                  {% if pedido.retirado_por_nome %}
+                    <div class="mt-2">
+                      <strong>Retirado por:</strong> {{ pedido.retirado_por_nome }} — CPF: {{ pedido.retirado_por_cpf }}<br/>
+                      <small>Data da retirada: {{ pedido.data_retirada }}</small>
+                      {% if pedido.entrega_confirmada %}
+                        <div><strong>Entrega confirmada em:</strong> {{ pedido.data_entrega }}</div>
+                      {% endif %}
+                    </div>
+                  {% endif %}
               </td>
               <td class="px-4 py-3 text-sm text-slate-600">
                 {{ pedido.prioridade or "—" }}
